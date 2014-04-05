@@ -65,4 +65,10 @@ public class Position {
 		}
 		return false;
 	}
+	
+	@Override
+	public int hashCode() {
+		int code = Integer.parseInt(this.getX() + "" + this.getY()) % 97;
+		return code; //TODO: Good enough?
+	}
 }

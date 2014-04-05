@@ -1,6 +1,7 @@
 package worms.model;
 
 import be.kuleuven.cs.som.annotate.*;
+import worms.model.world.GameObject;
 import worms.util.*;
 
 /**
@@ -10,15 +11,16 @@ import worms.util.*;
  * Shape DONE
  * Mass DONE
  * Name DONE
- * Jumping DONE
- * Moving DONE
+ * Jumping
+ * Moving
  * 
  * Nominal
  * Direction DONE
- * Turning DONE
+ * Turning
  * 
  * Total
  * ActionPoint DONE
+ * HitPoints DONE
  */
 
 /**
@@ -27,7 +29,7 @@ import worms.util.*;
  * @author Derkinderen Vincent - Bachelor Informatica - R0458834
  * @author Coosemans Brent - Bachelor Informatica - R0376498
  * 
- * @Repository https://github.com/FearTheDust/Worm.git
+ * @Repository https://github.com/FearTheDust/Worm.git TODO Update to new project repository! --------------------------------
  * 
  * @invar	This worm's action points amount is at all times less than or equal to the maximum amount of action points allowed and greater than or equal to 0.
  * 			| 0 <= this.getCurrentActionPoints() <= this.getMaximumActionPoints()
@@ -43,14 +45,11 @@ import worms.util.*;
  * 
  * @invar 	The mass of this worm follows, at all times, the formula:
  * 			| getDensity() * (4.0/3.0) * Math.PI * Math.pow(this.getRadius(),3) == this.getMass()
- * 
- * @invar	No double will have the value of "Not A Number" and neither will any "double returning function" return it.
- *			| !Double.isNaN(...)
  *
  * @invar	The position of this worm is never null.
  *			| this.getPosition() != null 
  */
-public class Worm {
+public class Worm extends GameObject {
 
 	/**
 	 * Acceleration on earth while falling.
@@ -63,16 +62,17 @@ public class Worm {
 	public static final double FORCE_TIME = 0.5;
 	
 	/**
-	 * Initialize a new worm with a certain position, angle, radius, name and amount of action points.
+	 * Initialize a new worm with a certain position, angle, radius, name, a certain amount of action points and a certain amount of hit points.
 	 * 
 	 * @param position The position of the new worm.
 	 * @param angle The angle of the new worm.
 	 * @param radius The radius of the new worm.
 	 * @param name The name of the new worm.
 	 * @param actionPoints The amount of action points of the new worm.
+	 * @param hitPoints The amount of hit points of the new worm.
 	 * 
-	 * @post	The position of the new worm is equal to position.
-	 * 			| new.getPosition().equals(position)
+	 * @effect	This worm will be granted a provided position when valid.
+	 * 			super(position)
 	 * 
 	 * @post	The angle of the new worm is equal to angle.
 	 * 			| new.getAngle() == angle
@@ -86,38 +86,36 @@ public class Worm {
 	 * @effect	The current amount of action points for the new worm is equal to actionPoints. 
 	 * 			In the case that actionPoints is greater than the amount of action points allowed, the maximum amount will be set.
 	 * 			| this.setCurrentActionPoints(actionPoints)
+	 * 
+	 * @effect The current amount of hit points for the new worm is equal to hitPoints.
+	 * 			In the case that hitPoints is greater than the amount of hit points allowed, the maximum amount will be set.
+	 * 			| this.setCurrentHitPoints(hitPoints)
 	 */
 	@Raw
-	public Worm(Position position, double angle, double radius, String name, int actionPoints) {
-		this.setPosition(position);
+	public Worm(Position position, double angle, double radius, String name, int actionPoints, int hitPoints) {
+		super(position);
 		this.setAngle(angle);
 		this.setRadius(radius);
 		this.setName(name);
 		this.setCurrentActionPoints(actionPoints);
+		this.setCurrentHitPoints(hitPoints);
 	}
 	
 	/**
-	 * Initialize a new worm with a maximum amount of action points possible for this worm.
+	 * Initialize a new worm with a maximum amount of action points possible for this worm as well as the maximum amount of possible hit points for this worm.
 	 * 
 	 * @param position The position of the new worm.
 	 * @param angle The angle of the new worm.
 	 * @param radius The radius of the new worm.
 	 * @param name The name of the new worm.
 	 * 
-	 * @effect	A new worm will be initialized with a position, angle, radius, name and the maximum amount of action points possible for the new worm.
-	 * 			| this(position, angle, radius, name, Integer.MAX_VALUE)
+	 * @effect	A new worm will be initialized with a position, angle, radius, name, the maximum amount of action points possible for the new worm 
+	 * 				and the maximum amount of hit points possible for the new worm.
+	 * 			| this(position, angle, radius, name, Integer.MAX_VALUE, Integer.MAX_VALUE)
 	 */
 	@Raw
 	public Worm(Position position, double angle, double radius, String name) {
-		this(position, angle, radius, name, Integer.MAX_VALUE);
-	}
-	
-	/**
-	 * Returns the position of this worm.
-	 */
-	@Basic @Raw
-	public Position getPosition() {
-		return position;
+		this(position, angle, radius, name, Integer.MAX_VALUE, Integer.MAX_VALUE);
 	}
 	
 	/**
@@ -172,7 +170,7 @@ public class Worm {
 			return this.getPosition();
 		}
 		
-		if(this.getAngle()> Math.PI) {
+		if(this.getAngle()> Math.PI) { //TODO Math.PI / 2  shouldn't change position when jumping from this.
 			return this.getPosition();
 		}
 		
@@ -199,8 +197,7 @@ public class Worm {
 	 * 			| Else
 	 * 			| force = 5 * this.getCurrentActionPoints() + this.getMass() * EARTH_ACCELERATION
 	 * 			| startSpeed = (force / this.getMass()) * FORCE_TIME
-	 * 			| distance = (Math.pow(startSpeed, 2) * Math.sin(2 * this.getAngle())) / EARTH_ACCELERATION
-	 * 			| time = distance / (startSpeed * Math.cos(this.getAngle()))
+	 * 			| time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / EARTH_ACCELERATION);
 	 * 			| result == time
 	 */
 	public double jumpTime() {
@@ -211,8 +208,9 @@ public class Worm {
 		//sin(2X) = 2sin(X)cos(X); so 2sin(X)cos(X)/cos(X) => 2sin(X) => return 0   => time can never be negative.
 		double force = 5 * this.getCurrentActionPoints() + this.getMass() * EARTH_ACCELERATION;
 		double startSpeed = (force / this.getMass()) * FORCE_TIME;
-		double distance = (Math.pow(startSpeed, 2) * Math.sin(2 * this.getAngle())) / EARTH_ACCELERATION;
-		double time = Math.abs(distance / (startSpeed * Math.cos(this.getAngle())));
+		//double distance = (Math.pow(startSpeed, 2) * Math.sin(2 * this.getAngle())) / EARTH_ACCELERATION;
+		//double time = Math.abs(distance / (startSpeed * Math.cos(this.getAngle()))); division by zero -- actually this works non the less it seems @see Project 1 testWorm
+		double time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / EARTH_ACCELERATION);
 
 		return time;
 	}
@@ -259,26 +257,6 @@ public class Worm {
 	public static int getMoveCost(int steps, double angle){
 		return (int) (steps * Math.ceil(Math.abs(Math.cos(angle)) + Math.abs(4*Math.sin(angle))) );
 	}
-	
-	/**
-	 * Set the new position of this worm.
-	 * 
-	 * @param position The new position of this worm.
-	 * 
-	 * @post	This worm's position is equal to the given position.
-	 * 			| new.getPosition() == position
-	 * 
-	 * @throws NullPointerException
-	 * 			When position is null.
-	 * 			| position == null
-	 */
-	private void setPosition(Position position) throws NullPointerException {
-		if(position == null)
-			throw new NullPointerException();
-		this.position = position;
-	}
-	
-	private Position position;
 
 	/**
 	 * Returns the angle of this worm.
@@ -319,10 +297,10 @@ public class Worm {
 	 * @param angle The angle to turn.
 	 * 
 	 * @return The cost to turn.
-	 * 			| result == (int) Math.abs(Math.ceil(30 * (angle / Math.PI)))
+	 * 			| result == (int) Math.ceil(Math.abs(30 * (angle / Math.PI)))
 	 */
 	public static int getTurnCost(double angle) {
-		return (int) Math.abs(Math.ceil(30 * (angle / Math.PI)));
+		return (int) Math.ceil(Math.abs(30 * (angle / Math.PI)));
 	}
 	
 	/**
@@ -393,9 +371,7 @@ public class Worm {
 		if(Double.isNaN(radius))
 			throw new IllegalArgumentException("The radius must be a number.");
 		
-		int APdiff = this.getMaximumActionPoints() - this.getCurrentActionPoints();
 		this.radius = radius;
-		this.setCurrentActionPoints(this.getMaximumActionPoints()-APdiff);
 	}
 	
 	/**
@@ -480,7 +456,7 @@ public class Worm {
 	 * 
 	 * @param name The name to be checked.
 	 * 
-	 * @return  True if the name is longer than 2 characters, starts with an uppercase and when every character is one from the following:
+	 * @return  True if the name is longer than or equal to 2 characters, starts with an uppercase and when every character is one from the following:
 	 * 			[A-Z] || [a-z] || a space || ' || "
 	 * 			| result != ((name == null) &&
 	 * 			| (name.length() < 2) &&
@@ -496,13 +472,54 @@ public class Worm {
 		if(!Character.isUpperCase(name.charAt(0)))
 				return false;
 		for(Character ch : name.toCharArray()) {
-			if(!(Character.isLetter(ch) || ch == ' ' || ch == '\'' || ch == '\"'))
+			if(!(ch == ' ' || ch == '\'' || ch == '\"' || Character.isLetterOrDigit(ch)))
 				return false;
 		}
 		return true;
 	}
 	
-	private String name;
+	private String name;	
+	
+	/**
+	 * Set the current amount of hit points.
+	 * 
+	 * @param hitPoints The amount of hit points to set the current amount to.
+	 * 
+	 * @post	If hitPoints is greater than or equal to zero,
+	 * 			The new hit points amount will be set to the minimum value, being hitPoints or getMaximumHitPoints()
+	 * 			| if(hitPoints >= 0)
+	 * 			| new.getCurrentHitPoints() == Math.min(hitPoints, this.getMaximumHitPoints)
+	 * 
+	 * @post	If the hitPoints is less than zero, zero will be set.
+	 * 			| if(hitPoints < 0)
+	 * 			| new.getCurrentHitPoints() == 0
+	 */
+	@Raw @Model
+	private void setCurrentHitPoints(int hitPoints) {
+		this.currentHitPoints = (hitPoints < 0) ? 0 : Math.min(hitPoints, getMaximumHitPoints());
+	}
+	
+	/**
+	 * Return the current amount of hit points in valid form.
+	 */
+	public int getCurrentHitPoints() {
+		//Call set to make sure we're in valid bounds.
+		setCurrentHitPoints(currentHitPoints);
+		return currentHitPoints;
+	}
+	
+	/**
+	 * Returns this worm's maximum amount of hit points.
+	 */
+	public int getMaximumHitPoints() {
+		double mass = this.getMass();
+		if(mass > Integer.MAX_VALUE)
+			return Integer.MAX_VALUE;
+		return (int) Math.round(mass);
+	}
+
+	private int currentHitPoints;
+	
 	
 	/**
 	 * Set the current action points.
@@ -524,10 +541,12 @@ public class Worm {
 	}
 	
 	/**
-	 * Returns the current amount of action points.
+	 * Returns the current amount of action points in valid form.
 	 */
 	@Basic @Raw
 	public int getCurrentActionPoints() {
+		//Call set to make sure we're in valid bounds.
+		setCurrentActionPoints(currentActionPoints);
 		return currentActionPoints;
 	}
 	
@@ -535,9 +554,10 @@ public class Worm {
 	 * Returns the maximum amount of action points.
 	 */
 	public int getMaximumActionPoints() {
-		if(this.getMass() > Integer.MAX_VALUE)
+		double mass = this.getMass();
+		if(mass > Integer.MAX_VALUE)
 			return Integer.MAX_VALUE;
-		return (int) Math.round(this.getMass());
+		return (int) Math.round(mass);
 	}
 	
 	private int currentActionPoints;
