@@ -1,5 +1,6 @@
 package worms.model;
 
+import worms.model.world.entity.Worm;
 import worms.util.Position;
 
 /**

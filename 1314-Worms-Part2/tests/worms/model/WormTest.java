@@ -2,7 +2,10 @@ package worms.model;
 
 
 import static org.junit.Assert.*;
+
 import org.junit.Test;
+
+import worms.model.world.entity.Worm;
 import worms.util.Position;
 
 /**

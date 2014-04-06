@@ -1,7 +1,7 @@
-package worms.model;
+package worms.model.world.entity;
 
 import be.kuleuven.cs.som.annotate.*;
-import worms.model.world.GameObject;
+import worms.model.Constants;
 import worms.util.*;
 
 /**
@@ -50,11 +50,6 @@ import worms.util.*;
  *			| this.getPosition() != null 
  */
 public class Worm extends GameObject {
-
-	/**
-	 * Acceleration on earth while falling.
-	 */
-	public static final double EARTH_ACCELERATION = 9.80665;
 	
 	/**
 	 * The time a worm will exert a force on its body.
@@ -147,13 +142,13 @@ public class Worm extends GameObject {
 	 * 
 	 * @return Else return The position this worm has at a certain time in a jump.
 	 * 			| Else
-	 * 			| force = 5 * this.getCurrentActionPoints() + this.getMass() * EARTH_ACCELERATION
+	 * 			| force = 5 * this.getCurrentActionPoints() + this.getMass() * Constants.EARTH_ACCELERATION
 	 * 			| startSpeed = (force / this.getMass()) * FORCE_TIME
 	 * 			| startSpeedX = startSpeed * Math.cos(this.getAngle())
 	 * 			| startSpeedY = startSpeed * Math.sin(this.getAngle())
 	 * 
 	 * 			| x = this.getPosition().getX() + (startSpeedX * time)
-	 * 			| y = this.getPosition().getY() + (startSpeedY * time - EARTH_ACCELERATION * Math.pow(time,2) / 2)
+	 * 			| y = this.getPosition().getY() + (startSpeedY * time - Constants.EARTH_ACCELERATION * Math.pow(time,2) / 2)
 	 * 			| result == new Position(x,y)
 	 * 
 	 * @throws IllegalArgumentException
@@ -175,14 +170,14 @@ public class Worm extends GameObject {
 		}
 		
 		//Calculation
-		double force = 5 * this.getCurrentActionPoints() + this.getMass() * EARTH_ACCELERATION;
+		double force = 5 * this.getCurrentActionPoints() + this.getMass() * Constants.EARTH_ACCELERATION;
 		double startSpeed = (force / this.getMass()) * FORCE_TIME;
 		
 		double startSpeedX = startSpeed * Math.cos(this.getAngle());
 		double startSpeedY = startSpeed * Math.sin(this.getAngle());
 		
 		double x = this.getPosition().getX() + (startSpeedX * time);
-		double y = this.getPosition().getY() + (startSpeedY * time - EARTH_ACCELERATION * Math.pow(time,2) / 2);
+		double y = this.getPosition().getY() + (startSpeedY * time - Constants.EARTH_ACCELERATION * Math.pow(time,2) / 2);
 		
 		//Return
 		return new Position(x,y);
@@ -195,9 +190,9 @@ public class Worm extends GameObject {
 	 * 			| If this.getAngle() > Math.PI Then 
 	 * 			| result == 0
 	 * 			| Else
-	 * 			| force = 5 * this.getCurrentActionPoints() + this.getMass() * EARTH_ACCELERATION
+	 * 			| force = 5 * this.getCurrentActionPoints() + this.getMass() * Constants.EARTH_ACCELERATION
 	 * 			| startSpeed = (force / this.getMass()) * FORCE_TIME
-	 * 			| time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / EARTH_ACCELERATION);
+	 * 			| time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / Constants.EARTH_ACCELERATION);
 	 * 			| result == time
 	 */
 	public double jumpTime() {
@@ -206,11 +201,11 @@ public class Worm extends GameObject {
 			return 0;
 		}
 		//sin(2X) = 2sin(X)cos(X); so 2sin(X)cos(X)/cos(X) => 2sin(X) => return 0   => time can never be negative.
-		double force = 5 * this.getCurrentActionPoints() + this.getMass() * EARTH_ACCELERATION;
+		double force = 5 * this.getCurrentActionPoints() + this.getMass() * Constants.EARTH_ACCELERATION;
 		double startSpeed = (force / this.getMass()) * FORCE_TIME;
-		//double distance = (Math.pow(startSpeed, 2) * Math.sin(2 * this.getAngle())) / EARTH_ACCELERATION;
+		//double distance = (Math.pow(startSpeed, 2) * Math.sin(2 * this.getAngle())) / Constants.EARTH_ACCELERATION;
 		//double time = Math.abs(distance / (startSpeed * Math.cos(this.getAngle()))); division by zero -- actually this works non the less it seems @see Project 1 testWorm
-		double time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / EARTH_ACCELERATION);
+		double time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / Constants.EARTH_ACCELERATION);
 
 		return time;
 	}

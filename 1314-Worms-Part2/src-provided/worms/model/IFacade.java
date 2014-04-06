@@ -3,6 +3,8 @@ package worms.model;
 import java.util.Collection;
 import java.util.Random;
 
+import worms.model.world.entity.Worm;
+
 /**
  * Implement this interface to connect your code to the user interface.
  * 

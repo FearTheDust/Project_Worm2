@@ -9,6 +9,7 @@ import java.util.Random;
 import org.junit.Before;
 import org.junit.Test;
 
+import worms.model.world.entity.Worm;
 import worms.util.Util;
 
 //TODO: Tests old version of this Test class located in project part 1, copy & paste here??

@@ -1,4 +1,4 @@
-package worms.model.world;
+package worms.model.world.entity;
 
 import worms.util.Position;
 import be.kuleuven.cs.som.annotate.Basic;

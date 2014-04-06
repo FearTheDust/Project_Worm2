@@ -4,30 +4,36 @@ import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 
 /**
- * Abstract class representing a Weapon with a certain mass, damage and cost to shoot.
+ * Abstract class representing a Weapon with a certain projectile mass, damage, cost to shoot and base & maximum force.
  * 
  * @author Derkinderen Vincent
  * @author Coosemans Brent
  * 
- * @invar	The mass of this Weapon is at all times valid.
- * 			| isValidMass(this.getMass())
+ * @invar	The mass of this Weapon projectile is at all times valid.
+ * 			| isValidProjectileMass(this.getProjectileMass())
  *
+ * REMARK, if AMMO has to be added, use an object.
  */
 public abstract class Weapon {
 	
-	//TODO Propelling Force, AMMO (an Object??, MAX, MIN(0), etc)
-	
-	
-	//TODO: We waren aan 't werken aan baseForce & maxForce (+PropulsionYield in constructor!!)
-	
 	/**
-	 * Initialize a weapon with a certain mass, damage and a certain cost to shoot it.
-	 * @param mass 
-	 * @param damage
-	 * @param cost
+	 * Initialize a weapon with a certain projectile mass, damage, a certain cost to shoot it and a baseForce/maxForce.
+	 * 
+	 * @param mass The mass of this weapon's projectiles
+	 * @param damage The damage this weapon inflict.
+	 * @param cost The cost to use this weapon.
+	 * @param baseForce The base force used to shoot projectiles.
+	 * @param maxForce The max force used to shoot projectiles.
+	 * 
+	 * @post | getProjectileMass() == mass
+	 * @post | getForce(0) == baseForce
+	 * @post | getForce(100) == maxForce
+	 * 
+	 * @throws IllegalArgumentException 
+	 * 			| !isValidProjectileMass(mass)
 	 */
 	protected Weapon(double mass, int damage, int cost, double baseForce, double maxForce) throws IllegalArgumentException {
-		if(!isValidMass(mass))
+		if(!isValidProjectileMass(mass))
 			throw new IllegalArgumentException("The provided mass for this Weapon isn't valid.");
 		
 		this.mass = mass;
@@ -58,7 +64,7 @@ public abstract class Weapon {
 	 * 			| if(mass < 0)
 	 * 			| then result == false
 	 */
-	public static boolean isValidMass(double mass) {
+	public static boolean isValidProjectileMass(double mass) {
 		if(mass < 0)
 			return false;
 		
@@ -69,7 +75,7 @@ public abstract class Weapon {
 	 * @return The mass of this weapon.
 	 */
 	@Basic @Immutable
-	public double getMass() {
+	public double getProjectileMass() {
 		return mass;
 	}
 	
