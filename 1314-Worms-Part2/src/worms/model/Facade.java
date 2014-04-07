@@ -4,6 +4,7 @@ import java.util.Collection;
 import java.util.Random;
 
 import worms.model.world.World;
+import worms.model.world.entity.Food;
 import worms.model.world.entity.Projectile;
 import worms.model.world.entity.Worm;
 import worms.util.Position;
@@ -248,8 +249,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public double getRadius(Food food) {
-		// TODO Auto-generated method stub
-		return 0;
+		return food.getRadius();
 	}
 
 	@Override
@@ -283,8 +283,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public double getX(Food food) {
-		// TODO Auto-generated method stub
-		return 0;
+		return food.getPosition().getX();
 	}
 
 	@Override
@@ -294,8 +293,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public double getY(Food food) {
-		// TODO Auto-generated method stub
-		return 0;
+		return food.getPosition().getY();
 	}
 
 	@Override
@@ -317,7 +315,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isAdjacent(World world, double x, double y, double radius) {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stub ----------------------------------------------------------------
 		return false;
 	}
 
@@ -354,8 +352,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void move(Worm worm) {
-		// TODO Auto-generated method stub
-		
+		worm.move(1);
 	}
 
 	@Override

@@ -59,6 +59,8 @@ public abstract class GameObject {
 	}
 	
 	/**
+	 * Returns whether the position is a valid position/
+	 * 
 	 * @return False when position == null
 	 * 			| if position == null
 	 * 			| then result == false
