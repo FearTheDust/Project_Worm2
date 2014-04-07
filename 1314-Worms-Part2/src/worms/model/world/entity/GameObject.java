@@ -71,5 +71,10 @@ public abstract class GameObject {
 	}
 	
 	private Position position;
+	
+	/**
+	 * Return the mass of this GameObject.
+	 */
+	public abstract double getMass();
 
 }

@@ -3,6 +3,8 @@ package worms.model;
 import java.util.Collection;
 import java.util.Random;
 
+import worms.model.world.World;
+import worms.model.world.entity.Projectile;
 import worms.model.world.entity.Worm;
 
 /**

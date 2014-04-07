@@ -5,10 +5,10 @@ import worms.model.Constants;
 import worms.util.Position;
 import worms.util.Util;
 
-public abstract class Projectile extends GameObject {
+public abstract class Projectile extends SphericalGameObject {
 
 	/*
-	 * TODO isValidAngle
+	 * TODO isValidAngle -- nominal -- add to constructor to check
 	 */
 
 	/**
@@ -28,6 +28,8 @@ public abstract class Projectile extends GameObject {
 		this.angle = angle;
 		this.forceTime = forceTime;
 	}
+	
+	
 
 	/**
 	 * Returns the time the force is exerted on this projectile.
@@ -51,15 +53,19 @@ public abstract class Projectile extends GameObject {
 
 	private double angle;
 
+	public double getRadius() {
+		return Math.pow((this.getMass() * 3.0) / (getDensity() * 4.0 * Math.PI), (1/3));
+	}
+
 	/**
 	 * Returns the force exerted on the projectile.
 	 */
-	public abstract double getForce();
+	public abstract double getForce(double propulsionYield);
 
 	/**
 	 * Returns the mass of the projectile.
 	 */
-	public abstract double getProjectileMass();
+	public abstract double getMass();
 
 	/**
 	 * Returns the density of the projectile.
@@ -90,11 +96,11 @@ public abstract class Projectile extends GameObject {
 	 * 			When time exceeds the time required to jump or time is a negative value.
 	 * 			| (time > this.jumpTime() || time < 0)
 	 */
-	public Position jumpStep(double time) throws IllegalArgumentException {
-		if (!Util.fuzzyLessThanOrEqualTo(time, jumpTime()))
+	public Position jumpStep(double time, double propulsionYield) throws IllegalArgumentException {
+		if (!Util.fuzzyLessThanOrEqualTo(time, jumpTime(propulsionYield)))
 			throw new IllegalArgumentException(
 					"The time can't be greater than the time needed to perform the whole jump. Time: "
-							+ time + " and jumpTime: " + jumpTime());
+							+ time + " and jumpTime: " + jumpTime(propulsionYield));
 		if (time < 0)
 			throw new IllegalArgumentException("The time can't be negative.");
 
@@ -108,7 +114,7 @@ public abstract class Projectile extends GameObject {
 		}
 
 		// Calculation
-		double startSpeed = (getForce() / this.getProjectileMass())
+		double startSpeed = (getForce(propulsionYield) / this.getMass())
 				* getForceTime();
 
 		double startSpeedX = startSpeed * Math.cos(this.getAngle());
@@ -135,13 +141,13 @@ public abstract class Projectile extends GameObject {
 	 * 			| time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / Constants.EARTH_ACCELERATION);
 	 * 			| result == time
 	 */
-	public double jumpTime() {
+	public double jumpTime(double propulsionYield) {
 		if (this.getAngle() > Math.PI) {
 			return 0;
 		}
 		// sin(2X) = 2sin(X)cos(X); so 2sin(X)cos(X)/cos(X) => 2sin(X) => return
 		// 0 => time can never be negative.
-		double startSpeed = (getForce() / this.getProjectileMass())
+		double startSpeed = (getForce(propulsionYield) / this.getMass())
 				* getForceTime();
 		double time = Math.abs(2 * startSpeed * Math.sin(this.getAngle())
 				/ Constants.EARTH_ACCELERATION);

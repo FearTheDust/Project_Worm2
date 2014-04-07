@@ -49,7 +49,7 @@ import worms.util.*;
  * @invar	The position of this worm is never null.
  *			| this.getPosition() != null 
  */
-public class Worm extends GameObject {
+public class Worm extends SphericalGameObject {
 	
 	/**
 	 * The time a worm will exert a force on its body.
