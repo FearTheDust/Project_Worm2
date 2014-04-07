@@ -29,7 +29,7 @@ import worms.util.*;
  * @author Derkinderen Vincent - Bachelor Informatica - R0458834
  * @author Coosemans Brent - Bachelor Informatica - R0376498
  * 
- * @Repository https://github.com/FearTheDust/Worm.git TODO Update to new project repository! --------------------------------
+ * @Repository https://github.com/FearTheDust/Project_Worm2.git
  * 
  * @invar	This worm's action points amount is at all times less than or equal to the maximum amount of action points allowed and greater than or equal to 0.
  * 			| 0 <= this.getCurrentActionPoints() <= this.getMaximumActionPoints()
