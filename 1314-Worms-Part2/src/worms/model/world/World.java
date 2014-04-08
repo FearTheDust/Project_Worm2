@@ -4,8 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
+import be.kuleuven.cs.som.annotate.Basic;
+import be.kuleuven.cs.som.annotate.Immutable;
 import worms.model.Team;
 import worms.model.world.entity.GameObject;
+import worms.model.world.entity.Projectile;
 import worms.model.world.entity.SphericalGameObject;
 import worms.model.world.entity.Worm;
 import worms.util.Position;
@@ -52,6 +55,16 @@ public class World {
 		return true;
 	}
 	
+	@Basic@Immutable
+	public double getWidth(){
+		return this.width;
+	}
+	
+	@Basic@Immutable
+	public double getHeigth(){
+		return this.height;
+	}
+	
 	/**
 	 * World Dimension
 	 */
@@ -92,11 +105,14 @@ public class World {
 	 * @throws IllegalArgumentException
 	 * 			| team == null ||
 	 * 			| getTeams().size() >= MAX_TEAM_AMOUNT
+	 * @throws IllegalStateException
+	 * 			| this.getState()!=WorldState.INITIALISATION
 	 */
-	public void add(Team team) throws IllegalArgumentException {
+	public void add(Team team) throws IllegalArgumentException, IllegalStateException {
 		if(team == null)
 			throw new IllegalArgumentException("Can't add a team with a null reference to this world.");
-		
+		if(this.getState()!=WorldState.INITIALISATION)
+			throw new IllegalStateException("Team can only be added during the initialisation of this world.");
 		if(teamList.size() >= MAX_TEAM_AMOUNT)
 			throw new IllegalArgumentException("The list of teams for this world is full, can't add more teams.");
 		
@@ -110,16 +126,37 @@ public class World {
 	 * @post | getGameObjects().contains(gameObject)
 	 * @throws IllegalArgumentException
 	 * 			| gameObject == null ||
-	 * 			| //TODO: Voeg check Formeel toe hier
+	 * 			| !liesWithinBoundaries(gameObject)
+	 * @throws IllegalStateException
+	 * 			| !(gameObject instanceof Projectile) && this.getState()!=WorldState.INITIALISATION
 	 */
-	public void add(SphericalGameObject gameObject) throws IllegalArgumentException {
+	public void add(SphericalGameObject gameObject) throws IllegalArgumentException, IllegalStateException {
 		if(gameObject == null)
 			throw new IllegalArgumentException("The SphericalGameObject to add to this world was a null reference.");
-			
-		//TODO: Add check = If such an entity is located in a world, then the circle must
-		//TODO: lie fully within the bounds of that world and may overlap with other entities.
-		
+		if(!(gameObject instanceof Projectile) && this.getState()!=WorldState.INITIALISATION)
+			throw new IllegalStateException("Only projectiles can be added after the initialisation of this world");
+		if(!liesWithinBoundaries(gameObject))
+			throw new IllegalArgumentException("This object doesn't lie within the boundaries of this world.");
 		gameObjList.add(gameObject);
+	}
+	
+	/**
+	 * Returns whether a given object lies within the boundaries of this world.
+	 * 
+	 * @param gameObject the object to check.
+	 * @return 	| if(!((gameObject.getPosition().getX()-gameObject.getRadius()>=0) && gameObject.getPosition().getX()+gameObject.getRadius()<=this.getWidth()))
+	 *			| 	result == false;
+	 *			| if(!((gameObject.getPosition().getY()-gameObject.getRadius()>=0) && gameObject.getPosition().getY()+gameObject.getRadius()<=this.getHeigth()))
+	 *			|	return false;
+	 *			| else
+	 *			|	result == true;
+	 */
+	public boolean liesWithinBoundaries(SphericalGameObject gameObject){
+		if(!((gameObject.getPosition().getX()-gameObject.getRadius()>=0) && gameObject.getPosition().getX()+gameObject.getRadius()<=this.getWidth()))
+			return false;
+		if(!((gameObject.getPosition().getY()-gameObject.getRadius()>=0) && gameObject.getPosition().getY()+gameObject.getRadius()<=this.getHeigth()))
+			return false;
+		return true;
 	}
 	
 	/**
@@ -133,9 +170,102 @@ public class World {
 	 * The list containing our GameObjects
 	 */
 	private List<GameObject> gameObjList;
-	//TODO: Gaan we Worm in een aparte lijst houden om er makkelijk over te loopen?
 	
+	/**
+	 * Returns the current active worm on this world.
+	 */
+	public Worm getActiveWorm() {
+		return activeWorm;
+	}
 	
+	private Worm activeWorm;
+	
+	public void startGame(){
+		this.activeWorm = getNextWorm();
+		this.state = WorldState.PLAYING;
+		
+		if(this.gameEnded())
+			this.state = WorldState.ENDED;
+		
+		
+	}
+	
+	public boolean gameEnded(){
+		switch(this.getState()){
+		case INITIALISATION:
+			return false;
+		
+		case ENDED:
+			return true;
+		
+		case PLAYING:
+			if(getNextWorm() == null)
+				return true;
+			
+			boolean firstWormFound = false;
+			Team firstTeam = null;
+			
+			for(GameObject gameObject : this.getGameObjects()){
+				if(gameObject instanceof Worm && ((Worm) gameObject).isAlive() && !firstWormFound){
+					firstWormFound = true;
+					firstTeam = ((Worm) gameObject).getTeam();
+				}
+				
+				if(gameObject instanceof Worm && ((Worm) gameObject).isAlive() && firstWormFound){
+					if(firstTeam == null)
+						return false;
+					
+					if(firstTeam != ((Worm) gameObject).getTeam())
+						return false;
+				}
+			}
+			
+			return true; //TODO: Check dit en check alle dingen! -----------------------------------------------------------------------------
+			
+			
+		default:
+			return false;
+			
+		}
+		
+	}
+	
+	/**
+	 * Returns the next worm.
+	 * If there is only one living worm left, returns null.
+	 */
+	public Worm getNextWorm() {
+		if(this.getActiveWorm() == null) {
+			for(GameObject gameObject : this.getGameObjects()){
+				if(gameObject instanceof Worm && ((Worm) gameObject).isAlive())
+					return (Worm) gameObject;
+			}
+			return null;
+		} else {
+			boolean previousWormFound = false;
+			for(GameObject gameObject : this.getGameObjects()){
+				if(previousWormFound && gameObject instanceof Worm && ((Worm) gameObject).isAlive())
+					return (Worm) gameObject;
+				if(gameObject == this.getActiveWorm())
+					previousWormFound = true;	
+			}
+			for(GameObject gameObject : this.getGameObjects()){
+				if(gameObject instanceof Worm && ((Worm) gameObject).isAlive() && gameObject!=this.getActiveWorm())
+					return (Worm) gameObject;
+			}
+			return null;
+			
+		}
+	}
+	
+	/**
+	 * Returns the current state of this world.
+	 */
+	public WorldState getState(){
+		return this.state;
+	}
+	
+	private WorldState state = WorldState.INITIALISATION;
 	
 	/**
 	 * Checks whether the given circular region of this world,
