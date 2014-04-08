@@ -20,7 +20,7 @@ public class Team {
 	 * Initialize a new empty team with a certain name.
 	 * 
 	 * @param name The name for this team.
-	 * @post new.getName() = name
+	 * @post | new.getName() = name
 	 */
 	public Team(String name) {
 		if(!isValidName(name))
@@ -70,21 +70,21 @@ public class Team {
 	 * 
 	 * @param worm The worm to be checked.
 	 * 
-	 * @return 	| if(worm==null)
+	 * @return 	| if(worm == null)
 	 *			|	result == false;
 	 *			| if(!worm.isAlive())
 	 *			|	result == false;
-	 *			| if(worm.getTeam()!=null)
+	 *			| if(worm.getTeam() != null)
 	 *			|	result == false;
 	 *			| else
 	 *			|	result == true;
 	 */
 	public static boolean isValidWorm(Worm worm){
-		if(worm==null)
+		if(worm == null)
 			return false;
 		if(!worm.isAlive())
 			return false;
-		if(worm.getTeam()!=null)
+		if(worm.getTeam() != null)
 			return false;
 		return true;
 	}
@@ -94,9 +94,11 @@ public class Team {
 	 * 
 	 * @param worm the worm to add.
 	 * 
-	 * @post worm.getTeam() == new
+	 * @post | worm.getTeam() == new
+	 * @throws IllegalArgumentException
+	 * 			| !isValidWorm(worm)
 	 */
-	public void add(Worm worm){
+	public void add(Worm worm) throws IllegalArgumentException {
 		if(!isValidWorm(worm))
 			throw new IllegalArgumentException("This worm is not a valid worm for a team.");
 		teamList.add(worm);

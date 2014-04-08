@@ -1,10 +1,12 @@
 package worms.model;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
 import worms.model.world.World;
 import worms.model.world.entity.Food;
+import worms.model.world.entity.GameObject;
 import worms.model.world.entity.Projectile;
 import worms.model.world.entity.Worm;
 import worms.util.Position;
@@ -146,14 +148,13 @@ public class Facade implements IFacade {
 
 	@Override
 	public void addEmptyTeam(World world, String newName) {
-		// TODO Auto-generated method stub
-		
+		world.add(new Team(newName));
 	}
 
 	@Override
 	public void addNewFood(World world) {
-		// TODO Auto-generated method stub
-		
+		Position position = world.getRandomAdjacentPos();
+		createFood(world, position.getX(), position.getY());
 	}
 
 	@Override
@@ -176,15 +177,16 @@ public class Facade implements IFacade {
 
 	@Override
 	public Food createFood(World world, double x, double y) {
-		// TODO Auto-generated method stub
-		return null;
+		Food newFood = new Food(new Position(x,y));
+		world.add(newFood);
+		return newFood;
 	}
 
 	@Override
 	public World createWorld(double width, double height,
 			boolean[][] passableMap, Random random) {
 		// TODO Auto-generated method stub
-		return null;
+		return new World(width, height, passableMap, random);
 	}
 
 	@Override
@@ -214,10 +216,15 @@ public class Facade implements IFacade {
 
 	@Override
 	public Collection<Food> getFood(World world) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<Food> list = new ArrayList<Food>();
+		for(GameObject obj : world.getGameObjects()) {
+			if(obj instanceof Food)
+				list.add((Food) obj);
+		}
+		
+		return list;
 	}
-
+	
 	@Override
 	public int getHitPoints(Worm worm) {
 		return worm.getCurrentHitPoints();
@@ -243,8 +250,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public int getMaxHitPoints(Worm worm) {
-		// TODO Auto-generated method stub
-		return 0;
+		return worm.getMaximumHitPoints();
 	}
 
 	@Override
@@ -265,8 +271,13 @@ public class Facade implements IFacade {
 
 	@Override
 	public String getTeamName(Worm worm) {
-		// TODO Auto-generated method stub
-		return null;
+		Team team = worm.getTeam();
+		
+		if(team == null) {
+			return "";
+		} else {
+			return team.getName();
+		}
 	}
 
 	@Override
@@ -321,8 +332,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isAlive(Worm worm) {
-		// TODO Auto-generated method stub
-		return false;
+		return worm.isAlive();
 	}
 
 	@Override
