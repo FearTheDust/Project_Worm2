@@ -2,6 +2,7 @@ package worms.model.world.entity;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.Constants;
+import worms.model.Team;
 import worms.util.*;
 
 /**
@@ -48,6 +49,9 @@ import worms.util.*;
  *
  * @invar	The position of this worm is never null.
  *			| this.getPosition() != null 
+ *
+ * @invar	This worm is a member of the team it is in.
+ *			| this.getTeam().isMember(this)
  */
 public class Worm extends SphericalGameObject {
 	
@@ -452,12 +456,12 @@ public class Worm extends SphericalGameObject {
 	 * @param name The name to be checked.
 	 * 
 	 * @return  True if the name is longer than or equal to 2 characters, starts with an uppercase and when every character is one from the following:
-	 * 			[A-Z] || [a-z] || a space || ' || "
+	 * 			[A-Z] || [a-z] || a space || ' || " || [0-9]
 	 * 			| result != ((name == null) &&
 	 * 			| (name.length() < 2) &&
 	 * 			| (!Character.isUpperCase(name.charAt(0)) &&
 	 * 			| (for each index i in 0..name.toCharArray().length-1:
-     *       	|   (!(Character.isLetter(name.toCharArray[i]) || name.toCharArray[i] == ' ' || name.toCharArray[i] == '\'' || name.toCharArray[i] == '\"'))))
+     *       	|   (!(Character.isLetterOrDigit(name.toCharArray[i]) || name.toCharArray[i] == ' ' || name.toCharArray[i] == '\'' || name.toCharArray[i] == '\"'))))
 	 */
 	public static boolean isValidName(String name) {
 		if(name == null)
@@ -556,5 +560,42 @@ public class Worm extends SphericalGameObject {
 	}
 	
 	private int currentActionPoints;
+
+	/**
+	 * Set the team of this worm to team.
+	 * 
+	 * @param team The team to set for this worm.
+	 * 
+	 * @post The team of this worm will be equal to team.
+	 * 		 | new.getTeam() == team
+	 * 
+	 * @throws IllegalArgumentException
+	 * 			When this worm isn't a member of team.
+	 * 			| !team.isMember(this)
+	 */
+	@Raw
+	public void setTeam(Team team) throws IllegalArgumentException {
+		if(!team.isMember(this)) 
+			throw new IllegalArgumentException("This worm also has to be a member of the team.");
+		this.team=team;
+	}
+
+	private Team team;
+	
+	/**
+	 * Returns whether this worm's hit points equals 0.
+	 */
+	public boolean isAlive() {
+		if(this.getCurrentHitPoints() == 0)
+			return false;
+		return true;
+	}
+
+	/**
+	 * Returns this worm's team.
+	 */
+	public Team getTeam() {
+		return team;
+	}
 	
 }
