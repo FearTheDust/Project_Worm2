@@ -41,5 +41,10 @@ public class Rifle extends Weapon {
 	public Rifle() {
 		super(RIFLE_PROJECTILE_MASS, RIFLE_BASEDAMAGE, RIFLE_SHOOTCOST, RIFLE_BASEFORCE, RIFLE_MAXFORCE);
 	}
+	
+	@Override
+	public String getName() {
+		return "Rifle";
+	}
 
 }

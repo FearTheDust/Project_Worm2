@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
+import worms.model.equipment.weapons.Weapon;
 import worms.model.world.World;
 import worms.model.world.entity.Food;
 import worms.model.world.entity.GameObject;
@@ -204,8 +205,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public Projectile getActiveProjectile(World world) {
-		// TODO Auto-generated method stub
-		return null;
+		return world.getLivingProjectile();
 	}
 
 	@Override
@@ -265,8 +265,12 @@ public class Facade implements IFacade {
 
 	@Override
 	public String getSelectedWeapon(Worm worm) {
-		// TODO Auto-generated method stub
-		return null;
+		Weapon weapon = worm.getCurrentWeapon();
+		
+		if(weapon == null)
+			return null;
+		
+		return worm.getCurrentWeapon().getName();
 	}
 
 	@Override
@@ -282,14 +286,20 @@ public class Facade implements IFacade {
 
 	@Override
 	public String getWinner(World world) {
-		// TODO Auto-generated method stub
-		return null;
+		return world.getWinner();
 	}
 
 	@Override
 	public Collection<Worm> getWorms(World world) {
-		// TODO Auto-generated method stub
-		return null;
+		ArrayList<Worm> result = new ArrayList<Worm>();
+		
+		for(GameObject gameObject : world.getGameObjects()) {
+			if(gameObject instanceof Worm) {
+				result.add((Worm) gameObject);
+			}
+		}
+		
+		return result;
 	}
 
 	@Override
@@ -314,14 +324,12 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isActive(Food food) {
-		// TODO Auto-generated method stub
-		return false;
+		return food.isAlive();
 	}
 
 	@Override
 	public boolean isActive(Projectile projectile) {
-		// TODO Auto-generated method stub
-		return false;
+		return projectile.isAlive();
 	}
 
 	@Override
@@ -337,8 +345,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isGameFinished(World world) {
-		// TODO Auto-generated method stub
-		return false;
+		return world.gameEnded();
 	}
 
 	@Override
@@ -367,8 +374,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void selectNextWeapon(Worm worm) {
-		// TODO Auto-generated method stub
-		
+		worm.setCurrentWeapon(worm.getNextWeapon());	
 	}
 
 	@Override
@@ -379,14 +385,12 @@ public class Facade implements IFacade {
 
 	@Override
 	public void startGame(World world) {
-		// TODO Auto-generated method stub
-		
+		world.startGame();
 	}
 
 	@Override
 	public void startNextTurn(World world) {
-		// TODO Auto-generated method stub
-		
+		world.nextTurn();
 	}
 
 }

@@ -42,5 +42,10 @@ public class Bazooka extends Weapon {
 	public Bazooka() {
 		super(BAZOOKA_PROJECTILE_MASS, BAZOOKA_BASEDAMAGE, BAZOOKA_SHOOTCOST, BAZOOKA_BASEFORCE, BAZOOKA_MAXFORCE);
 	}
+	
+	@Override
+	public String getName() {
+		return "Bazooka";
+	}
 
 }

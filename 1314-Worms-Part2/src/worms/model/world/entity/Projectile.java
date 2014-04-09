@@ -29,8 +29,31 @@ public abstract class Projectile extends SphericalGameObject {
 		this.forceTime = forceTime;
 	}
 	
-	
+	/**
+	 * Returns the force exerted on the projectile.
+	 */
+	public abstract double getForce(double propulsionYield);
 
+	/**
+	 * Returns the mass of the projectile.
+	 */
+	public abstract double getMass();
+
+	/**
+	 * Returns the density of the projectile.
+	 */
+	public abstract double getDensity();
+	
+	/**
+	 * Returns whether this Projectile is alive.
+	 * This will always return false since a World can only have a maximum of 1 live project at all times,
+	 * The live projectile will be stored in World.
+	 */
+	public final boolean isAlive() {
+		return false;
+	}
+	
+	
 	/**
 	 * Returns the time the force is exerted on this projectile.
 	 */
@@ -57,20 +80,6 @@ public abstract class Projectile extends SphericalGameObject {
 		return Math.pow((this.getMass() * 3.0) / (getDensity() * 4.0 * Math.PI), (1/3));
 	}
 
-	/**
-	 * Returns the force exerted on the projectile.
-	 */
-	public abstract double getForce(double propulsionYield);
-
-	/**
-	 * Returns the mass of the projectile.
-	 */
-	public abstract double getMass();
-
-	/**
-	 * Returns the density of the projectile.
-	 */
-	public abstract double getDensity();
 
 	/**
 	 * Returns the position where this projectile would be at a certain time whilst jumping.

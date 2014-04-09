@@ -1,8 +1,13 @@
 package worms.model.world.entity;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import be.kuleuven.cs.som.annotate.*;
-import worms.model.Constants;
-import worms.model.Team;
+import worms.model.*;
+import worms.model.equipment.weapons.Bazooka;
+import worms.model.equipment.weapons.Rifle;
+import worms.model.equipment.weapons.Weapon;
 import worms.util.*;
 
 /**
@@ -98,6 +103,12 @@ public class Worm extends SphericalGameObject {
 		this.setName(name);
 		this.setCurrentActionPoints(actionPoints);
 		this.setCurrentHitPoints(hitPoints);
+		
+		//Add & set weapons.
+		this.add(new Rifle());
+		this.add(new Bazooka());
+		this.setCurrentWeapon(this.getNextWeapon());
+		
 	}
 	
 	/**
@@ -392,25 +403,6 @@ public class Worm extends SphericalGameObject {
 	public double getMass() {
 		return getDensity() * (4.0/3.0) * Math.PI * Math.pow(this.getRadius(),3);
 	}
-
-// In case of later use.
-//	/**
-//	 * Sets the mass of this worm.
-//	 * @post	The mass of this worm is equal to the result of the formula "Mass = (getDensity()) * (4/3) * Math.PI * (radius)^3"
-//	 * 			| new.getMass() == getDensity() * (4.0/3.0) * Math.PI * Math.pow(this.getRadius(),3)
-//	 * 
-//	 * @post	see setCurrentActionPoints(this.getCurrentActionPoints()) //@effect?
-//	 */
-//	@Raw
-//	private void setMass() /*throws IllegalArgumentException*/ {
-//		//We'd better use an argument if we use this...
-//		/*if(this.radius >= Math.pow(Double.MAX_VALUE * (3.0/4.0) / DENSITY / Math.PI, 1/3))
-//			throw new IllegalArgumentException();*/
-//			
-//		this.mass = getDensity() * (4.0/3.0) * Math.PI * Math.pow(this.getRadius(),3);
-//		this.setCurrentActionPoints(this.getCurrentActionPoints());
-//	}
-//	private double mass;
 	
 	/**
 	 * Returns this worm's density.
@@ -581,6 +573,13 @@ public class Worm extends SphericalGameObject {
 	}
 
 	private Team team;
+
+	/**
+	 * Returns this worm's team.
+	 */
+	public Team getTeam() {
+		return team;
+	}
 	
 	/**
 	 * Returns whether this worm's hit points equals 0.
@@ -590,12 +589,100 @@ public class Worm extends SphericalGameObject {
 			return false;
 		return true;
 	}
-
+	
 	/**
-	 * Returns this worm's team.
+	 * Returns the Weapon the worm is currently having equipped.
+	 * If it hasn't got a Weapon equipped it will return null.
 	 */
-	public Team getTeam() {
-		return team;
+	@Raw @Basic
+	public Weapon getCurrentWeapon() {
+		if(currentWeaponIndex == -1)
+			return null;
+		
+		return weaponList.get(currentWeaponIndex);
 	}
+	
+	/**
+	 * Set the current weapon to weapon.
+	 * @param weapon The weapon to set to.
+	 * @post The current Weapon of the worm will be equal to weapon.
+	 * 			| new.getCurrentWeapon() == weapon
+	 * @throws IllegalArgumentException
+	 * 			When the weapon provided is equal to null.
+	 * 			| (weapon == null)
+	 */
+	@Raw
+	public void setCurrentWeapon(Weapon weapon) throws IllegalArgumentException {
+		if(weapon == null)
+			throw new IllegalArgumentException("The weapon provided to set to isn't allowed to be a null reference.");
+		if(!weaponList.contains(weapon))
+			throw new IllegalArgumentException("The weapon must be in our weaponList.");
+		
+		this.currentWeaponIndex = weaponList.indexOf(weapon);
+	}
+	
+	private int currentWeaponIndex = -1;
+	
+	/**
+	 * Returns the next weapon available for the worm.
+	 * @throws IllegalStateException
+	 * 			When the list of weapons available is empty.
+	 * 			| this.getWeaponList().size() == 0
+	 */
+	@Raw
+	public Weapon getNextWeapon() throws IllegalStateException {
+		if(currentWeaponIndex == -1 && weaponList.size() == 0)
+			throw new IllegalStateException("Next Weapon isn't available since the list doesn't contain any weapons.");
+		
+		if(currentWeaponIndex == weaponList.size()-1)
+			return weaponList.get(0);
+		else
+			return weaponList.get(currentWeaponIndex+1);
+	}
+	
+	/**
+	 * Add a weapon to the weapons available to this worm, if it isn't yet.
+	 * Doesn't do anything if the worm already has this weapon.
+	 * @param weapon The weapon to add.
+	 * @post The weapon will be available for the worm to access.
+	 * 			| this.getWeaponList().contains(weapon);
+	 * 
+	 * @throws IllegalArgumentException
+	 * 			When weapon is equal to null.
+	 * 			| weapon == null
+	 */
+	public void add(Weapon weapon) {
+		if(weapon == null)
+			throw new IllegalArgumentException("Can't add a weapon that is a null reference.");
+		
+		if(!this.hasGot(weapon))
+			weaponList.add(weapon);
+	}
+	
+	/**
+	 * Returns whether the worm has access to a weapon of the same class than weapon.getClass().
+	 * @param weapon The weapon to check the class from.
+	 * @return Whether the worm has access to a weapon of the same class than weapon.getClass()
+	 * 			| for each Weapon aWeapon of this.getWeaponList()
+	 * 				| if(aWeapon.getClass() == weapon.getClass())
+	 * 				| result == true
+	 * 			| result == false
+	 */
+	public boolean hasGot(Weapon weapon) {
+		for(Weapon aWeapon : weaponList) {
+			if(aWeapon.getClass() == weapon.getClass())
+				return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Returns a copy of the list of all weapon a worm has access to at this moment.
+	 */
+	public List<Weapon> getWeaponList() {
+		return new ArrayList<Weapon>(weaponList);
+	}
+	
+	private ArrayList<Weapon> weaponList = new ArrayList<Weapon>();
 	
 }

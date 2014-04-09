@@ -78,5 +78,10 @@ public abstract class GameObject {
 	 * Return the mass of this GameObject.
 	 */
 	public abstract double getMass();
-
+	
+	/**
+	 * Returns whether or not this GameObject is alive in the world it's in.
+	 */
+	public abstract boolean isAlive();
+	
 }

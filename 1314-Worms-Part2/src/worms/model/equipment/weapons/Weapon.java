@@ -126,6 +126,11 @@ public abstract class Weapon {
 	private final double maxForce;
 	
 	/**
+	 * Returns the name of this weapon.
+	 */
+	public abstract String getName();
+	
+	/**
 	 * Checks whether the provided propulsionYield is valid.
 	 * @param propulsionYield The propulsionYield to check.
 	 * @return Whether the propulsionYield is between (inclusive) 0 and 100.
@@ -134,6 +139,8 @@ public abstract class Weapon {
 	public static boolean isValidPropulsionYield(double propulsionYield) {
 		return (propulsionYield >= 0 && propulsionYield <= 100);
 	}
+	
+	
 	
 
 }
