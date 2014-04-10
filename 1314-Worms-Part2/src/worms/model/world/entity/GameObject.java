@@ -1,5 +1,6 @@
 package worms.model.world.entity;
 
+import worms.model.world.World;
 import worms.util.Position;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Raw;
@@ -16,19 +17,44 @@ import be.kuleuven.cs.som.annotate.Raw;
 public abstract class GameObject {
 
 	/**
-	 * Initialize a GameObject with a certain Position.
+	 * Initialize a GameObject with a certain Position in a world.
 	 * 
 	 * @param position The position of the GameObject.
 	 * @throws IllegalArgumentException
 	 * 			When position isn't valid.
 	 * 			| !this.isValidPosition(position);
+	 * 			When the world is null.
+	 * 			| world == null
 	 */
 	@Raw
-	public GameObject(Position position) throws IllegalArgumentException {
+	public GameObject(World world, Position position) throws IllegalArgumentException {
 		if(!isValidPosition(position))
 			throw new IllegalArgumentException();
 		
+		if(world == null)
+			throw new IllegalArgumentException();
+		
 		this.setPosition(position);
+		this.world = world;
+	}
+	
+	/**
+	 * Initialize a GameObject with a certain Position in a world.
+	 * 
+	 * @param position The position of the GameObject.
+	 * @throws IllegalArgumentException
+	 * 			When position isn't valid.
+	 * 			| !this.isValidPosition(position);
+	 * 			When the world is null.
+	 * 			| world == null
+	 */
+	@Raw
+	public GameObject(World world) throws IllegalArgumentException{
+		if(world == null)
+			throw new IllegalArgumentException();
+		
+		this.setPosition(position);
+		this.world = world;
 	}
 	
 	/**
@@ -64,15 +90,37 @@ public abstract class GameObject {
 	 * @return False when position == null
 	 * 			| if position == null
 	 * 			| then result == false
+	 * @return False if the x & y aren't in the boundaries of the world.
+	 * 			| if(!(world.getHeight() <= position.getY() && position.getY() >= 0 && world.getWidth <= position.getX() && position.getX() >= 0))
+	 * 			| then result == false
 	 */
 	public boolean isValidPosition(Position position) { //TODO (vraag) static? Maar static overerft toch niet?
 		if(position == null)
 			return false;
-		
+		if(!(world.getHeigth() <= position.getY() && position.getY() >= 0))
+			return false;
+		if(!(world.getWidth() <= position.getX() && position.getX() >= 0))
+			return false;
+			
 		return true;
 	}
 	
 	private Position position;
+	
+	
+	/**
+	 * Returns the world the worm is in.
+	 * If the worm is dead this will automatically return null.
+	 */
+	public World getWorld() {
+		if(this.isAlive()) {
+			return world;
+		}
+		return null;
+	}
+	
+	protected World world;
+
 	
 	/**
 	 * Return the mass of this GameObject.
@@ -84,4 +132,9 @@ public abstract class GameObject {
 	 */
 	public abstract boolean isAlive();
 	
+	/**
+	 * The radius of the GameObject
+	 */
+	public abstract double getRadius();
+
 }

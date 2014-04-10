@@ -3,6 +3,8 @@ package worms.model.world.entity;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Raw;
+import worms.model.Constants;
+import worms.model.world.World;
 import worms.util.Position;
 
 /**
@@ -12,18 +14,19 @@ import worms.util.Position;
  * @author Derkinderen Vincent
  *
  */
-public class Food extends SphericalGameObject {
+public class Food extends GameObject {
 
 	/**
 	 * Initialize Food with a certain position.
 	 * 
+	 * @param world The world this food is in.
 	 * @param position The position of this food.
 	 * @effect | super(position)
 	 * @post | new.isAlive()
 	 */
 	@Raw
-	public Food(Position position) {
-		super(position);
+	public Food(World world, Position position) {
+		super(world, position);
 		this.alive = true;
 	}
 
@@ -32,7 +35,7 @@ public class Food extends SphericalGameObject {
 	 */
 	@Override @Immutable @Basic
 	public double getRadius() {
-		return 0.2;
+		return Constants.FOOD_RADIUS;
 	}
 
 	/**

@@ -5,9 +5,8 @@ import java.util.List;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.*;
-import worms.model.equipment.weapons.Bazooka;
-import worms.model.equipment.weapons.Rifle;
-import worms.model.equipment.weapons.Weapon;
+import worms.model.equipment.weapons.*;
+import worms.model.world.World;
 import worms.util.*;
 
 /**
@@ -58,16 +57,17 @@ import worms.util.*;
  * @invar	This worm is a member of the team it is in.
  *			| this.getTeam().isMember(this)
  */
-public class Worm extends SphericalGameObject {
-	
+public class Worm extends GameObject {
+
 	/**
 	 * The time a worm will exert a force on its body.
 	 */
 	public static final double FORCE_TIME = 0.5;
-	
+
 	/**
 	 * Initialize a new worm with a certain position, angle, radius, name, a certain amount of action points and a certain amount of hit points.
 	 * 
+	 * @param world The world of the new worm.
 	 * @param position The position of the new worm.
 	 * @param angle The angle of the new worm.
 	 * @param radius The radius of the new worm.
@@ -76,7 +76,7 @@ public class Worm extends SphericalGameObject {
 	 * @param hitPoints The amount of hit points of the new worm.
 	 * 
 	 * @effect	This worm will be granted a provided position when valid.
-	 * 			super(position)
+	 * 			super(world, position)
 	 * 
 	 * @post	The angle of the new worm is equal to angle.
 	 * 			| new.getAngle() == angle
@@ -94,26 +94,32 @@ public class Worm extends SphericalGameObject {
 	 * @effect The current amount of hit points for the new worm is equal to hitPoints.
 	 * 			In the case that hitPoints is greater than the amount of hit points allowed, the maximum amount will be set.
 	 * 			| this.setCurrentHitPoints(hitPoints)
+	 * 
+	 * @effect This is added to the list of GameObjects in world.
+	 * 			| world.Add(this)
 	 */
 	@Raw
-	public Worm(Position position, double angle, double radius, String name, int actionPoints, int hitPoints) {
-		super(position);
+	public Worm(World world, Position position, double angle, double radius,
+			String name, int actionPoints, int hitPoints) {
+		super(world, position);
 		this.setAngle(angle);
 		this.setRadius(radius);
 		this.setName(name);
 		this.setCurrentActionPoints(actionPoints);
 		this.setCurrentHitPoints(hitPoints);
-		
-		//Add & set weapons.
+
+		world.add(this);
+
+		// Add & set weapons.
 		this.add(new Rifle());
 		this.add(new Bazooka());
 		this.setCurrentWeapon(this.getNextWeapon());
-		
 	}
-	
+
 	/**
 	 * Initialize a new worm with a maximum amount of action points possible for this worm as well as the maximum amount of possible hit points for this worm.
 	 * 
+	 * @param world The world of the new worm.
 	 * @param position The position of the new worm.
 	 * @param angle The angle of the new worm.
 	 * @param radius The radius of the new worm.
@@ -121,13 +127,15 @@ public class Worm extends SphericalGameObject {
 	 * 
 	 * @effect	A new worm will be initialized with a position, angle, radius, name, the maximum amount of action points possible for the new worm 
 	 * 				and the maximum amount of hit points possible for the new worm.
-	 * 			| this(position, angle, radius, name, Integer.MAX_VALUE, Integer.MAX_VALUE)
+	 * 			| this(world, position, angle, radius, name, Integer.MAX_VALUE, Integer.MAX_VALUE)
 	 */
 	@Raw
-	public Worm(Position position, double angle, double radius, String name) {
-		this(position, angle, radius, name, Integer.MAX_VALUE, Integer.MAX_VALUE);
+	public Worm(World world, Position position, double angle, double radius,
+			String name) {
+		this(world, position, angle, radius, name, Integer.MAX_VALUE,
+				Integer.MAX_VALUE);
 	}
-	
+
 	/**
 	 * This worm jumps to a certain position calculated by a formula.
 	 * 
@@ -140,12 +148,12 @@ public class Worm extends SphericalGameObject {
 	 * 			| this.setPosition(this.jumpStep(this.jumpTime()))
 	 */
 	public void jump() {
-		if(!(this.getAngle() > Math.PI)) {
+		if (!(this.getAngle() > Math.PI)) {
 			this.setPosition(this.jumpStep(this.jumpTime()));
 			this.setCurrentActionPoints(0);
 		}
 	}
-	
+
 	/**
 	 * Returns the position where this worm would be at a certain time whilst jumping.
 	 * 
@@ -171,33 +179,39 @@ public class Worm extends SphericalGameObject {
 	 * 			| (time > this.jumpTime() || time < 0)
 	 */
 	public Position jumpStep(double time) throws IllegalArgumentException {
-		if(!Util.fuzzyLessThanOrEqualTo(time, jumpTime()))
-			throw new IllegalArgumentException("The time can't be greater than the time needed to perform the whole jump. Time: " + time + " and jumpTime: " + jumpTime());
-		if(time < 0)
+		if (!Util.fuzzyLessThanOrEqualTo(time, jumpTime()))
+			throw new IllegalArgumentException(
+					"The time can't be greater than the time needed to perform the whole jump. Time: "
+							+ time + " and jumpTime: " + jumpTime());
+		if (time < 0)
 			throw new IllegalArgumentException("The time can't be negative.");
-		
-		if(time == 0) {
+
+		if (time == 0) {
 			return this.getPosition();
 		}
-		
-		if(this.getAngle()> Math.PI) { //TODO Math.PI / 2  shouldn't change position when jumping from this.
+
+		if (this.getAngle() > Math.PI) { // TODO Math.PI / 2 shouldn't change
+											// position when jumping from this.
 			return this.getPosition();
 		}
-		
-		//Calculation
-		double force = 5 * this.getCurrentActionPoints() + this.getMass() * Constants.EARTH_ACCELERATION;
+
+		// Calculation
+		double force = 5 * this.getCurrentActionPoints() + this.getMass()
+				* Constants.EARTH_ACCELERATION;
 		double startSpeed = (force / this.getMass()) * FORCE_TIME;
-		
+
 		double startSpeedX = startSpeed * Math.cos(this.getAngle());
 		double startSpeedY = startSpeed * Math.sin(this.getAngle());
-		
+
 		double x = this.getPosition().getX() + (startSpeedX * time);
-		double y = this.getPosition().getY() + (startSpeedY * time - Constants.EARTH_ACCELERATION * Math.pow(time,2) / 2);
-		
-		//Return
-		return new Position(x,y);
+		double y = this.getPosition().getY()
+				+ (startSpeedY * time - Constants.EARTH_ACCELERATION
+						* Math.pow(time, 2) / 2);
+
+		// Return
+		return new Position(x, y);
 	}
-	
+
 	/**
 	 * Returns the jump time if jumped with this worm's current angle.
 	 * 
@@ -211,61 +225,41 @@ public class Worm extends SphericalGameObject {
 	 * 			| result == time
 	 */
 	public double jumpTime() {
-		//this.getAngle() will automatically be less than 2*Math.PI because of the invariant.
-		if(this.getAngle() > Math.PI) {
+		// this.getAngle() will automatically be less than 2*Math.PI because of
+		// the invariant.
+		if (this.getAngle() > Math.PI) {
 			return 0;
 		}
-		//sin(2X) = 2sin(X)cos(X); so 2sin(X)cos(X)/cos(X) => 2sin(X) => return 0   => time can never be negative.
-		double force = 5 * this.getCurrentActionPoints() + this.getMass() * Constants.EARTH_ACCELERATION;
+		// sin(2X) = 2sin(X)cos(X); so 2sin(X)cos(X)/cos(X) => 2sin(X) => return
+		// 0 => time can never be negative.
+		double force = 5 * this.getCurrentActionPoints() + this.getMass()
+				* Constants.EARTH_ACCELERATION;
 		double startSpeed = (force / this.getMass()) * FORCE_TIME;
-		//double distance = (Math.pow(startSpeed, 2) * Math.sin(2 * this.getAngle())) / Constants.EARTH_ACCELERATION;
-		//double time = Math.abs(distance / (startSpeed * Math.cos(this.getAngle()))); division by zero -- actually this works non the less it seems @see Project 1 testWorm
-		double time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / Constants.EARTH_ACCELERATION);
+		// double distance = (Math.pow(startSpeed, 2) * Math.sin(2 *
+		// this.getAngle())) / Constants.EARTH_ACCELERATION;
+		// double time = Math.abs(distance / (startSpeed *
+		// Math.cos(this.getAngle()))); division by zero -- actually this works
+		// non the less it seems @see Project 1 testWorm
+		double time = Math.abs(2 * startSpeed * Math.sin(this.getAngle())
+				/ Constants.EARTH_ACCELERATION);
 
 		return time;
 	}
-	
+
 	/**
-	 * Move this worm a certain amount of steps in the direction it's facing.
+	 * Returns the cost to move for this worm if this would be a legal position to move to.
 	 * 
-	 * @param steps The amount of steps this worm takes.
-	 * 
-	 * @post	The new position is the old position plus the amount of steps proportional to the direction this worm is facing.
-	 * 			| new.getPosition() == new Position(
-	 * 				this.getPosition().getX() + steps * Math.cos(this.getAngle()) * this.getRadius(),
-	 * 				this.getPosition().getY() + steps * Math.sin(this.getAngle()) * this.getRadius())
-	 * 
-	 * @effect	The new action points amount is set to the old amount minus the cost to move.
-	 * 			| this.setCurrentActionPoints(getCurrentActionPoints() - getMoveCost(steps,getAngle()));
-	 * 
-	 * @throws IllegalArgumentException
-	 * 			If steps is smaller than zero or if this worm doesn't have enough action points.
-	 * 			| steps < 0 || this.getMoveCost(steps,this.getAngle()) > this.getCurrentActionPoints()
-	 */
-	public void move(int steps) throws IllegalArgumentException {
-		if(steps < 0)
-			throw new IllegalArgumentException("Steps must be higher than or equal to zero");
-		if(getMoveCost(steps,getAngle()) > getCurrentActionPoints())
-			throw new IllegalArgumentException("You don't have enough Action Points");
-		
-		double x= this.getPosition().getX() + steps * Math.cos(getAngle()) * getRadius();
-		double y= this.getPosition().getY() + steps * Math.sin(getAngle()) * getRadius();
-		
-		setCurrentActionPoints(getCurrentActionPoints()-getMoveCost(steps,getAngle()));
-		setPosition(new Position(x,y));
-	}
-	
-	/**
-	 * Returns the cost to move a certain amount of steps in a certain direction.
-	 * 
-	 * @param steps The amount of steps to move.
-	 * @param angle Determines the direction to move in.
+	 * @param The position to go to.
 	 * 
 	 * @return 	The cost to move.
-	 * 			| result == (int) (steps*Math.ceil((Math.abs(Math.cos(angle)) + Math.abs(4*Math.sin(angle)))))
+	 * 			| s = Math.atan((this.getPosition().getY() - finalPosition.getY()) / (this.getPosition().getX() - finalPosition.getX()));
+	 * 			| result ==  (int) (Math.ceil(Math.abs(Math.cos(s)) + Math.abs(4 * Math.sin(s))));
 	 */
-	public static int getMoveCost(int steps, double angle){
-		return (int) (steps * Math.ceil(Math.abs(Math.cos(angle)) + Math.abs(4*Math.sin(angle))) );
+	public int getMoveCost(Position finalPosition) {
+		double s = Math.atan((this.getPosition().getY() - finalPosition.getY())
+				/ (this.getPosition().getX() - finalPosition.getX()));
+		return (int) (Math.ceil(Math.abs(Math.cos(s))
+				+ Math.abs(4 * Math.sin(s))));
 	}
 
 	/**
@@ -275,7 +269,7 @@ public class Worm extends SphericalGameObject {
 	public double getAngle() {
 		return angle;
 	}
-	
+
 	/**
 	 * Turn this worm with a given angle.
 	 * 
@@ -294,13 +288,16 @@ public class Worm extends SphericalGameObject {
 	 * 			| this.setAngle(Util.modulo(this.getAngle() + angle + 2*Math.PI, 2*Math.PI));
 	 */
 	public void turn(double angle) {
-		assert isValidAngle(Math.abs(2*angle)) || Util.fuzzyEquals(Math.abs(angle), Math.PI);
+		assert isValidAngle(Math.abs(2 * angle))
+				|| Util.fuzzyEquals(Math.abs(angle), Math.PI);
 		assert this.getCurrentActionPoints() >= getTurnCost(angle);
-		
-		this.setAngle(Util.modulo(this.getAngle() + angle + 2*Math.PI, 2*Math.PI));
-		this.setCurrentActionPoints(this.getCurrentActionPoints() - getTurnCost(angle));
+
+		this.setAngle(Util.modulo(this.getAngle() + angle + 2 * Math.PI,
+				2 * Math.PI));
+		this.setCurrentActionPoints(this.getCurrentActionPoints()
+				- getTurnCost(angle));
 	}
-	
+
 	/**
 	 * Returns the cost to change the orientation to the angle formed by adding the given angle to the current orientation.
 	 * 
@@ -312,7 +309,7 @@ public class Worm extends SphericalGameObject {
 	public static int getTurnCost(double angle) {
 		return (int) Math.ceil(Math.abs(30 * (angle / Math.PI)));
 	}
-	
+
 	/**
 	 * The angle provided has to be greater than or equal to 0 and less than 2*Math.PI.
 	 * 
@@ -321,10 +318,11 @@ public class Worm extends SphericalGameObject {
 	 * @return	Whether or not the given angle is valid.
 	 * 			| result == Util.fuzzyGreaterThanOrEqualTo(angle, 0) && (angle < 2*Math.PI)
 	 */
-	public static boolean isValidAngle(double angle){
-		return Util.fuzzyGreaterThanOrEqualTo(angle, 0) && (angle < 2*Math.PI);
+	public static boolean isValidAngle(double angle) {
+		return Util.fuzzyGreaterThanOrEqualTo(angle, 0)
+				&& (angle < 2 * Math.PI);
 	}
-	
+
 	/**
 	 * Set the new angle of this worm.
 	 * 
@@ -340,17 +338,18 @@ public class Worm extends SphericalGameObject {
 		assert isValidAngle(angle);
 		this.angle = angle;
 	}
-	
+
 	private double angle;
-	
+
 	/**
 	 * Returns the radius of this worm.
 	 */
-	@Basic @Raw
+	@Basic
+	@Raw
 	public double getRadius() {
 		return radius;
 	}
-	
+
 	/**
 	 * Set the new radius of this worm and update the action points accordingly.
 	 * Updating the action points means the difference between current and maximum amount of action points remains the same.
@@ -376,52 +375,59 @@ public class Worm extends SphericalGameObject {
 	 */
 	@Raw
 	public void setRadius(double radius) throws IllegalArgumentException {
-		if(! Util.fuzzyGreaterThanOrEqualTo(radius, getMinimumRadius()))
-			throw new IllegalArgumentException("The radius has to be greater than or equal to the minimum radius " + minRadius);
-		if(Double.isNaN(radius))
+		if (!Util.fuzzyGreaterThanOrEqualTo(radius, getMinimumRadius()))
+			throw new IllegalArgumentException(
+					"The radius has to be greater than or equal to the minimum radius "
+							+ minRadius);
+		if (Double.isNaN(radius))
 			throw new IllegalArgumentException("The radius must be a number.");
-		
+
 		this.radius = radius;
 	}
-	
+
 	/**
 	 * Returns the minimum radius of this worm.
 	 */
-	@Basic @Immutable
+	@Basic
+	@Immutable
 	public double getMinimumRadius() {
 		return minRadius;
 	}
-	
+
 	private double radius;
-	
-	private final double minRadius = 0.25; //Initialize in constructor later on.
-	
+
+	private final double minRadius = 0.25; // Initialize in constructor later
+											// on.
+
 	/**
 	 * Returns the mass of this worm.
 	 */
 	@Basic
 	public double getMass() {
-		return getDensity() * (4.0/3.0) * Math.PI * Math.pow(this.getRadius(),3);
+		return getDensity() * (4.0 / 3.0) * Math.PI
+				* Math.pow(this.getRadius(), 3);
 	}
-	
+
 	/**
 	 * Returns this worm's density.
 	 */
-	@Basic @Immutable
+	@Basic
+	@Immutable
 	public static final double getDensity() {
 		return DENSITY;
 	}
 
 	private static final double DENSITY = 1062;
-	
+
 	/**
 	 * Returns this worm's name.
 	 */
-	@Basic @Raw
+	@Basic
+	@Raw
 	public String getName() {
 		return name;
 	}
-	
+
 	/**
 	 * Set a new name for this worm.
 	 * 
@@ -438,10 +444,10 @@ public class Worm extends SphericalGameObject {
 	public void setName(String name) throws IllegalArgumentException {
 		if (!isValidName(name))
 			throw new IllegalArgumentException("Invalid name.");
-		
+
 		this.name = name;
 	}
-	
+
 	/**
 	 * Returns whether the name is a valid name.
 	 * 
@@ -453,24 +459,25 @@ public class Worm extends SphericalGameObject {
 	 * 			| (name.length() < 2) &&
 	 * 			| (!Character.isUpperCase(name.charAt(0)) &&
 	 * 			| (for each index i in 0..name.toCharArray().length-1:
-     *       	|   (!(Character.isLetterOrDigit(name.toCharArray[i]) || name.toCharArray[i] == ' ' || name.toCharArray[i] == '\'' || name.toCharArray[i] == '\"'))))
+	 *       	|   (!(Character.isLetterOrDigit(name.toCharArray[i]) || name.toCharArray[i] == ' ' || name.toCharArray[i] == '\'' || name.toCharArray[i] == '\"'))))
 	 */
 	public static boolean isValidName(String name) {
-		if(name == null)
+		if (name == null)
 			return false;
-		if(name.length() < 2)
+		if (name.length() < 2)
 			return false;
-		if(!Character.isUpperCase(name.charAt(0)))
-				return false;
-		for(Character ch : name.toCharArray()) {
-			if(!(ch == ' ' || ch == '\'' || ch == '\"' || Character.isLetterOrDigit(ch)))
+		if (!Character.isUpperCase(name.charAt(0)))
+			return false;
+		for (Character ch : name.toCharArray()) {
+			if (!(ch == ' ' || ch == '\'' || ch == '\"' || Character
+					.isLetterOrDigit(ch)))
 				return false;
 		}
 		return true;
 	}
-	
-	private String name;	
-	
+
+	private String name;
+
 	/**
 	 * Set the current amount of hit points.
 	 * 
@@ -485,33 +492,34 @@ public class Worm extends SphericalGameObject {
 	 * 			| if(hitPoints < 0)
 	 * 			| new.getCurrentHitPoints() == 0
 	 */
-	@Raw @Model
+	@Raw
+	@Model
 	private void setCurrentHitPoints(int hitPoints) {
-		this.currentHitPoints = (hitPoints < 0) ? 0 : Math.min(hitPoints, getMaximumHitPoints());
+		this.currentHitPoints = (hitPoints < 0) ? 0 : Math.min(hitPoints,
+				getMaximumHitPoints());
 	}
-	
+
 	/**
 	 * Return the current amount of hit points in valid form.
 	 */
 	public int getCurrentHitPoints() {
-		//Call set to make sure we're in valid bounds.
+		// Call set to make sure we're in valid bounds.
 		setCurrentHitPoints(currentHitPoints);
 		return currentHitPoints;
 	}
-	
+
 	/**
 	 * Returns this worm's maximum amount of hit points.
 	 */
 	public int getMaximumHitPoints() {
 		double mass = this.getMass();
-		if(mass > Integer.MAX_VALUE)
+		if (mass > Integer.MAX_VALUE)
 			return Integer.MAX_VALUE;
 		return (int) Math.round(mass);
 	}
 
 	private int currentHitPoints;
-	
-	
+
 	/**
 	 * Set the current action points.
 	 * 
@@ -526,31 +534,34 @@ public class Worm extends SphericalGameObject {
 	 * 			| if(actionPoints < 0)
 	 * 			| new.getCurrentActionPoints() == 0
 	 */
-	@Raw @Model
+	@Raw
+	@Model
 	private void setCurrentActionPoints(int actionPoints) {
-		this.currentActionPoints = (actionPoints < 0) ? 0 : Math.min(actionPoints, getMaximumActionPoints());
+		this.currentActionPoints = (actionPoints < 0) ? 0 : Math.min(
+				actionPoints, getMaximumActionPoints());
 	}
-	
+
 	/**
 	 * Returns the current amount of action points in valid form.
 	 */
-	@Basic @Raw
+	@Basic
+	@Raw
 	public int getCurrentActionPoints() {
-		//Call set to make sure we're in valid bounds.
+		// Call set to make sure we're in valid bounds.
 		setCurrentActionPoints(currentActionPoints);
 		return currentActionPoints;
 	}
-	
+
 	/**
 	 * Returns the maximum amount of action points.
 	 */
 	public int getMaximumActionPoints() {
 		double mass = this.getMass();
-		if(mass > Integer.MAX_VALUE)
+		if (mass > Integer.MAX_VALUE)
 			return Integer.MAX_VALUE;
 		return (int) Math.round(mass);
 	}
-	
+
 	private int currentActionPoints;
 
 	/**
@@ -567,9 +578,10 @@ public class Worm extends SphericalGameObject {
 	 */
 	@Raw
 	public void setTeam(Team team) throws IllegalArgumentException {
-		if(!team.isMember(this)) 
-			throw new IllegalArgumentException("This worm also has to be a member of the team.");
-		this.team=team;
+		if (!team.isMember(this))
+			throw new IllegalArgumentException(
+					"This worm also has to be a member of the team.");
+		this.team = team;
 	}
 
 	private Team team;
@@ -580,28 +592,38 @@ public class Worm extends SphericalGameObject {
 	public Team getTeam() {
 		return team;
 	}
-	
+
 	/**
 	 * Returns whether this worm's hit points equals 0.
 	 */
 	public boolean isAlive() {
-		if(this.getCurrentHitPoints() == 0)
+		if (this.world == null)
+			return false;
+
+		if (this.getPosition().getX() > this.world.getWidth()
+				|| this.getPosition().getX() < 0
+				|| this.getPosition().getY() > this.world.getHeigth()
+				|| this.getPosition().getY() < 0)
+			return false;
+
+		if (this.getCurrentHitPoints() == 0)
 			return false;
 		return true;
 	}
-	
+
 	/**
 	 * Returns the Weapon the worm is currently having equipped.
 	 * If it hasn't got a Weapon equipped it will return null.
 	 */
-	@Raw @Basic
+	@Raw
+	@Basic
 	public Weapon getCurrentWeapon() {
-		if(currentWeaponIndex == -1)
+		if (currentWeaponIndex == -1)
 			return null;
-		
+
 		return weaponList.get(currentWeaponIndex);
 	}
-	
+
 	/**
 	 * Set the current weapon to weapon.
 	 * @param weapon The weapon to set to.
@@ -613,16 +635,18 @@ public class Worm extends SphericalGameObject {
 	 */
 	@Raw
 	public void setCurrentWeapon(Weapon weapon) throws IllegalArgumentException {
-		if(weapon == null)
-			throw new IllegalArgumentException("The weapon provided to set to isn't allowed to be a null reference.");
-		if(!weaponList.contains(weapon))
-			throw new IllegalArgumentException("The weapon must be in our weaponList.");
-		
+		if (weapon == null)
+			throw new IllegalArgumentException(
+					"The weapon provided to set to isn't allowed to be a null reference.");
+		if (!weaponList.contains(weapon))
+			throw new IllegalArgumentException(
+					"The weapon must be in our weaponList.");
+
 		this.currentWeaponIndex = weaponList.indexOf(weapon);
 	}
-	
+
 	private int currentWeaponIndex = -1;
-	
+
 	/**
 	 * Returns the next weapon available for the worm.
 	 * @throws IllegalStateException
@@ -631,15 +655,16 @@ public class Worm extends SphericalGameObject {
 	 */
 	@Raw
 	public Weapon getNextWeapon() throws IllegalStateException {
-		if(currentWeaponIndex == -1 && weaponList.size() == 0)
-			throw new IllegalStateException("Next Weapon isn't available since the list doesn't contain any weapons.");
-		
-		if(currentWeaponIndex == weaponList.size()-1)
+		if (currentWeaponIndex == -1 && weaponList.size() == 0)
+			throw new IllegalStateException(
+					"Next Weapon isn't available since the list doesn't contain any weapons.");
+
+		if (currentWeaponIndex == weaponList.size() - 1)
 			return weaponList.get(0);
 		else
-			return weaponList.get(currentWeaponIndex+1);
+			return weaponList.get(currentWeaponIndex + 1);
 	}
-	
+
 	/**
 	 * Add a weapon to the weapons available to this worm, if it isn't yet.
 	 * Doesn't do anything if the worm already has this weapon.
@@ -652,13 +677,14 @@ public class Worm extends SphericalGameObject {
 	 * 			| weapon == null
 	 */
 	public void add(Weapon weapon) {
-		if(weapon == null)
-			throw new IllegalArgumentException("Can't add a weapon that is a null reference.");
-		
-		if(!this.hasGot(weapon))
+		if (weapon == null)
+			throw new IllegalArgumentException(
+					"Can't add a weapon that is a null reference.");
+
+		if (!this.hasGot(weapon))
 			weaponList.add(weapon);
 	}
-	
+
 	/**
 	 * Returns whether the worm has access to a weapon of the same class than weapon.getClass().
 	 * @param weapon The weapon to check the class from.
@@ -669,20 +695,148 @@ public class Worm extends SphericalGameObject {
 	 * 			| result == false
 	 */
 	public boolean hasGot(Weapon weapon) {
-		for(Weapon aWeapon : weaponList) {
-			if(aWeapon.getClass() == weapon.getClass())
+		for (Weapon aWeapon : weaponList) {
+			if (aWeapon.getClass() == weapon.getClass())
 				return true;
 		}
 		return false;
 	}
-	
+
 	/**
 	 * Returns a copy of the list of all weapon a worm has access to at this moment.
 	 */
 	public List<Weapon> getWeaponList() {
 		return new ArrayList<Weapon>(weaponList);
 	}
-	
+
 	private ArrayList<Weapon> weaponList = new ArrayList<Weapon>();
-	
+
+	/**
+	 * Give this worm his turn points.
+	 * 
+	 * @post Set the maximum action points for this worm.
+	 * 		| new.getCurrentActionPoints == this.getMaximumActionPoints()
+	 * @post Set the hit points to the current amount + 10
+	 * 		| new.getCurrentHitPoints == this.getCurrentHitPoints() + 10
+	 * @throws IllegalStateException
+	 * 			When this worm isn't alive.
+	 * 			| !this.isAlive()
+	 */
+	public void giveTurnPoints() throws IllegalStateException {
+		if (!this.isAlive())
+			throw new IllegalStateException(
+					"The worm must be alive in order to grant its turn points.");
+
+		this.setCurrentActionPoints(this.getMaximumActionPoints());
+		if (this.getCurrentHitPoints() + 10 < this.getCurrentHitPoints())
+			this.setCurrentHitPoints(getMaximumHitPoints());
+		else
+			this.setCurrentHitPoints(this.getCurrentHitPoints() + 10);
+	}
+
+	/**
+	 * Returns the position after we would move.
+	 * TODO: Formal & informal documentation!
+	 * @return
+	 */
+	public Position getMovePosition() {
+		if (this.getWorld() == null)
+			return null;
+
+		double minimize = 8.0;
+		double bestAngle;
+		Position bestPos = this.getPosition();
+
+		for (double currentAngle = this.getAngle() - 0.7875; currentAngle <= this
+				.getAngle() + 0.7875; currentAngle += 0.0175) {
+
+			double a = 0.1;
+			boolean found = false;
+
+			while (a <= this.getRadius() && !found) {
+				double PosX = a * Math.cos(currentAngle)
+						+ this.getPosition().getX();
+				double PosY = a * Math.sin(currentAngle)
+						+ this.getPosition().getY();
+				Position Pos = new Position(PosX, PosY);
+
+				if (this.getWorld().isAdjacent(Pos, this.getRadius())) {
+					a += 0.1;
+				} else {
+					found = true;
+				}
+			}
+
+			a -= 0.1;
+			Position newPos = new Position(a * Math.cos(currentAngle)
+					+ this.getPosition().getX(), a * Math.sin(currentAngle)
+					+ this.getPosition().getY());
+			if (a >= 0.1) {
+				double compare = Math.abs(this.getRadius() - currentAngle) / a;
+				if (compare < minimize) {
+					minimize = compare;
+					bestPos = newPos;
+					bestAngle = currentAngle;
+				}
+			}
+		}
+
+		return bestPos;
+	}
+
+	/**
+	 * Move the worm to a position as specified in the assignment.
+	 * If it isn't in a world, do nothing.
+	 * @effect The current action points is the previous - the cost.
+	 * 			| this.setCurrentActionPoints(this.getCurrentActionpoints() - this.getMoveCost(movePosition))
+	 * 
+	 * @effect The position is changed to the calculated position
+	 * 			| this.setPosition(this.getMovePosition())
+	 * 
+	 * @throws IllegalArgumentException
+	 * 			When the cost to jump is greater than the current amount of AP.
+	 * 			| getMoveCost(this.getMovePosition()) > getCurrentActionPoints()
+	 */
+	public void move() throws IllegalArgumentException {
+		if (this.getWorld() == null)
+			return;
+
+		Position movePosition = this.getMovePosition();
+		if (getMoveCost(movePosition) > getCurrentActionPoints())
+			throw new IllegalArgumentException(
+					"You don't have enough Action Points");
+
+		this.setCurrentActionPoints(this.getCurrentActionPoints()
+				- this.getMoveCost(movePosition));
+		this.setPosition(movePosition);
+	}
+
+	/**
+	 * Returns whether this worm can fall.
+	 * @return False if the worm has no world.
+	 * 			| if(this.getWorld() == null
+	 * 			| result == false
+	 * @return False if there is no passable'Tile' below him.
+	 * 			| for x from Math.max(Math.floor(this.getPosition().getX() - this.getRadius(),0) until 
+	 * 			| (x <= Math.ceil(this.getPosition().getX() + this.getRadius()) && x <= this.getWorld().getWidth() && x <= Integer.MAX_VALUE)
+	 * 			| isn't true with step 1
+	 * 			|		if(!this.getWorld().isPassableTile(new Position(x,this.getPosition().getY())))
+	 *			|			result == false;
+	 *			| result == true
+	 */
+	public boolean canFall() {
+		if (this.getWorld() == null)
+			return false;
+
+		for (double x = Math.max(
+				Math.floor(this.getPosition().getX() - this.getRadius()), 0); x <= Math
+				.ceil(this.getPosition().getX() + this.getRadius())
+				&& x <= this.getWorld().getWidth() && x <= Integer.MAX_VALUE; x++) {
+			if (!this.getWorld().isPassableTile(
+					new Position(x, this.getPosition().getY())))
+				return false;
+		}
+		return true;
+	}
+
 }

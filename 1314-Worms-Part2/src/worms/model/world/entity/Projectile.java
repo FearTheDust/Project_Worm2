@@ -2,33 +2,34 @@ package worms.model.world.entity;
 
 import be.kuleuven.cs.som.annotate.*;
 import worms.model.Constants;
+import worms.model.world.World;
 import worms.util.Position;
 import worms.util.Util;
 
-public abstract class Projectile extends SphericalGameObject {
+public abstract class Projectile extends GameObject {
 
-	/*
-	 * TODO isValidAngle -- nominal -- add to constructor to check
-	 */
+	// TODO isValidAngle -- nominal -- add to constructor to check
 
 	/**
 	 * Initialize a projectile with a certain position, angle and force time.
 	 * 
+	 * @param world The world of this projectile.
 	 * @param position The start position of this projectile.
 	 * @param angle The angle of this projectile.
 	 * @param forceTime The time a force is exerted on this projectile.
 	 * 
-	 * @effect super(position)
+	 * @effect super(world, position)
 	 * 
 	 * @post this.getAngle() == angle
 	 * @post this.getForceTime() == forceTime
 	 */
-	public Projectile(Position position, double angle, double forceTime) {
-		super(position);
+	public Projectile(World world, Position position, double angle,
+			double forceTime) {
+		super(world, position);
 		this.angle = angle;
 		this.forceTime = forceTime;
 	}
-	
+
 	/**
 	 * Returns the force exerted on the projectile.
 	 */
@@ -43,17 +44,16 @@ public abstract class Projectile extends SphericalGameObject {
 	 * Returns the density of the projectile.
 	 */
 	public abstract double getDensity();
-	
+
 	/**
 	 * Returns whether this Projectile is alive.
-	 * This will always return false since a World can only have a maximum of 1 live project at all times,
-	 * The live projectile will be stored in World.
+	 * This will always return true since a Projectile can only exist when it is alive.
+	 * Check the world.getLivingProjectile() to know if this projectile is currently alive in that world.
 	 */
 	public final boolean isAlive() {
-		return false;
+		return true;
 	}
-	
-	
+
 	/**
 	 * Returns the time the force is exerted on this projectile.
 	 */
@@ -77,9 +77,10 @@ public abstract class Projectile extends SphericalGameObject {
 	private double angle;
 
 	public double getRadius() {
-		return Math.pow((this.getMass() * 3.0) / (getDensity() * 4.0 * Math.PI), (1/3));
+		return Math.pow(
+				(this.getMass() * 3.0) / (getDensity() * 4.0 * Math.PI),
+				(1 / 3));
 	}
-
 
 	/**
 	 * Returns the position where this projectile would be at a certain time whilst jumping.
@@ -105,11 +106,14 @@ public abstract class Projectile extends SphericalGameObject {
 	 * 			When time exceeds the time required to jump or time is a negative value.
 	 * 			| (time > this.jumpTime() || time < 0)
 	 */
-	public Position jumpStep(double time, double propulsionYield) throws IllegalArgumentException {
+	public Position jumpStep(double time, double propulsionYield)
+			throws IllegalArgumentException {
 		if (!Util.fuzzyLessThanOrEqualTo(time, jumpTime(propulsionYield)))
 			throw new IllegalArgumentException(
 					"The time can't be greater than the time needed to perform the whole jump. Time: "
-							+ time + " and jumpTime: " + jumpTime(propulsionYield));
+							+ time
+							+ " and jumpTime: "
+							+ jumpTime(propulsionYield));
 		if (time < 0)
 			throw new IllegalArgumentException("The time can't be negative.");
 

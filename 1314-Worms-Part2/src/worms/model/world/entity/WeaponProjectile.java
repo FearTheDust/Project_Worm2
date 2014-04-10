@@ -2,6 +2,7 @@ package worms.model.world.entity;
 
 import be.kuleuven.cs.som.annotate.Immutable;
 import worms.model.equipment.weapons.Weapon;
+import worms.model.world.World;
 import worms.util.Position;
 
 /**
@@ -15,6 +16,8 @@ public class WeaponProjectile extends Projectile {
 
 	/**
 	 * Initialize a Weapon Projectile of a certain weapon, with a certain angle, starting from a certain position with a certain time the force is exerted.
+	 * 
+	 * @param world The world of this WeaponProjectile.
 	 * @param position The position where the Weapon Projectile starts from.
 	 * @param angle The angle representing the orientation where the Weapon Projectile is fired at.
 	 * @param forceTime The time a force is exerted on the Weapon Projectile.
@@ -24,8 +27,8 @@ public class WeaponProjectile extends Projectile {
 	 * @throws IllegalArgumentException
 	 * 			| !isValidWeapon(usedWeapon)
 	 */
-	public WeaponProjectile(Position position, double angle, double forceTime, Weapon usedWeapon) throws IllegalArgumentException {
-		super(position, angle, forceTime);
+	public WeaponProjectile(World world, Position position, double angle, double forceTime, Weapon usedWeapon) throws IllegalArgumentException {
+		super(world, position, angle, forceTime);
 		
 		if(!isValidWeapon(usedWeapon))
 			throw new IllegalArgumentException("Invalid weapon to create a WeaponProjectile.");

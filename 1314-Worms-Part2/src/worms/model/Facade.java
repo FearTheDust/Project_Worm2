@@ -28,19 +28,19 @@ public class Facade implements IFacade {
 		}
 	}
 
-	@Override
+	/*@Override
 	public boolean canMove(Worm worm, int nbSteps) {
 		return nbSteps >= 0 && Worm.getMoveCost(nbSteps, worm.getAngle()) <= worm.getCurrentActionPoints();
-	}
+	}*/
 
-	@Override
+	/*@Override
 	public void move(Worm worm, int nbSteps) throws ModelException {
 		try {
 			worm.move(nbSteps);
 		} catch(IllegalArgumentException ex) {
 			throw new ModelException(ex.getMessage());
 		}
-	}
+	}*/
 
 	@Override
 	public boolean canTurn(Worm worm, double angle) {
@@ -50,7 +50,7 @@ public class Facade implements IFacade {
 	@Override
 	public void turn(Worm worm, double angle) {
 		angle %= 2*Math.PI; //-180 -> 180
-		
+
 		if(angle < -Math.PI) {
 			angle += 2*Math.PI;
 		} else if(angle > Math.PI) {
@@ -154,31 +154,32 @@ public class Facade implements IFacade {
 
 	@Override
 	public void addNewFood(World world) {
-		Position position = world.getRandomAdjacentPos();
-		createFood(world, position.getX(), position.getY());
+		Position position = world.getRandomAdjacentPos(Constants.FOOD_RADIUS);
+		if(position!=null)
+			createFood(world, position.getX(), position.getY());
 	}
 
 	@Override
 	public void addNewWorm(World world) {
-		// TODO Auto-generated method stub
-		
+		Position position = world.getRandomAdjacentPos(1);
+		if(position!=null)
+			createWorm(world, position.getX(), position.getY(), 0, 1, "Eric"+(int) position.getX()+(int) position.getY());
+
 	}
 
 	@Override
 	public boolean canFall(Worm worm) {
-		// TODO Auto-generated method stub
-		return false;
+		return worm.canFall();
 	}
 
 	@Override
 	public boolean canMove(Worm worm) {
-		// TODO Auto-generated method stub
-		return false;
+		return worm.isAlive() && worm.getMoveCost(worm.getMovePosition()) <= worm.getCurrentActionPoints();
 	}
 
 	@Override
 	public Food createFood(World world, double x, double y) {
-		Food newFood = new Food(new Position(x,y));
+		Food newFood = new Food(world, new Position(x,y));
 		world.add(newFood);
 		return newFood;
 	}
@@ -186,21 +187,19 @@ public class Facade implements IFacade {
 	@Override
 	public World createWorld(double width, double height,
 			boolean[][] passableMap, Random random) {
-		// TODO Auto-generated method stub
 		return new World(width, height, passableMap, random);
 	}
 
 	@Override
 	public Worm createWorm(World world, double x, double y, double direction,
 			double radius, String name) {
-		// TODO Auto-generated method stub
-		return null;
+		return new Worm(world, new Position(x,y), direction, radius, name);
 	}
 
 	@Override
 	public void fall(Worm worm) {
-		// TODO Auto-generated method stub
-		
+		worm.fall();
+
 	}
 
 	@Override
@@ -210,21 +209,14 @@ public class Facade implements IFacade {
 
 	@Override
 	public Worm getCurrentWorm(World world) {
-		// TODO Auto-generated method stub
-		return null;
+		return world.getActiveWorm();
 	}
 
 	@Override
 	public Collection<Food> getFood(World world) {
-		ArrayList<Food> list = new ArrayList<Food>();
-		for(GameObject obj : world.getGameObjects()) {
-			if(obj instanceof Food)
-				list.add((Food) obj);
-		}
-		
-		return list;
+		return world.getFood();
 	}
-	
+
 	@Override
 	public int getHitPoints(Worm worm) {
 		return worm.getCurrentHitPoints();
@@ -266,17 +258,17 @@ public class Facade implements IFacade {
 	@Override
 	public String getSelectedWeapon(Worm worm) {
 		Weapon weapon = worm.getCurrentWeapon();
-		
+
 		if(weapon == null)
 			return null;
-		
+
 		return worm.getCurrentWeapon().getName();
 	}
 
 	@Override
 	public String getTeamName(Worm worm) {
 		Team team = worm.getTeam();
-		
+
 		if(team == null) {
 			return "";
 		} else {
@@ -291,15 +283,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public Collection<Worm> getWorms(World world) {
-		ArrayList<Worm> result = new ArrayList<Worm>();
-		
-		for(GameObject gameObject : world.getGameObjects()) {
-			if(gameObject instanceof Worm) {
-				result.add((Worm) gameObject);
-			}
-		}
-		
-		return result;
+		return world.getWorms();
 	}
 
 	@Override
@@ -334,8 +318,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isAdjacent(World world, double x, double y, double radius) {
-		// TODO Auto-generated method stub ----------------------------------------------------------------
-		return false;
+		return world.isAdjacent(new Position(x,y), radius);
 	}
 
 	@Override
@@ -350,26 +333,24 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean isImpassable(World world, double x, double y, double radius) {
-		
-		// TODO Auto-generated method stub -------------------------------------------------------------------------------------------------------------
-		return false;
+		return world.isImpassable(new Position(x,y), radius);
 	}
 
 	@Override
 	public void jump(Projectile projectile, double timeStep) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void jump(Worm worm, double timeStep) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void move(Worm worm) {
-		worm.move(1);
+		worm.move();
 	}
 
 	@Override
@@ -380,11 +361,12 @@ public class Facade implements IFacade {
 	@Override
 	public void shoot(Worm worm, int yield) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void startGame(World world) {
+		//TODO add worms & co
 		world.startGame();
 	}
 

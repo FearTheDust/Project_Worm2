@@ -57,6 +57,21 @@ public class Position {
 
 	private final double y;
 	
+	/**
+	 * Returns the distance between this position and the given position.
+	 * Returns 0 when position is null.
+	 * 
+	 * @param position The position to calculate the distance for.
+	 * @return The distance between the 2.
+	 * 			| result ==  Math.sqrt(Math.pow(this.getX() - position.getX(), 2) + Math.pow(this.getY() - position.getY(), 2));
+	 */
+	public double distance(Position position) {
+		if(position == null)
+			return 0;
+		
+		return Math.sqrt(Math.pow(this.getX() - position.getX(), 2) + Math.pow(this.getY() - position.getY(), 2));
+	}
+	
 	@Override
 	public boolean equals(Object otherObject) {
 		if(otherObject instanceof Position) {
@@ -71,4 +86,5 @@ public class Position {
 		int code = Integer.parseInt(this.getX() + "" + this.getY()) % 97;
 		return code; //TODO: Good enough?
 	}
+	
 }
