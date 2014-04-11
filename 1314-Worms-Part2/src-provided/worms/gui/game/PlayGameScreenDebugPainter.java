@@ -16,7 +16,7 @@ import worms.gui.game.commands.Command;
 import worms.gui.game.sprites.FoodSprite;
 import worms.gui.game.sprites.WormSprite;
 import worms.model.ModelException;
-import worms.model.World;
+import worms.model.world.World;
 
 public class PlayGameScreenDebugPainter extends PlayGameScreenPainter {
 

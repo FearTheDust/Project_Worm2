@@ -7,7 +7,7 @@ import java.awt.event.MouseEvent;
 import worms.gui.InputMode;
 import worms.gui.game.PlayGameScreen;
 import worms.gui.game.sprites.WormSprite;
-import worms.util.Worm;
+import worms.model.world.entity.Worm;
 
 public class DefaultInputMode extends InputMode<PlayGameScreen> {
 

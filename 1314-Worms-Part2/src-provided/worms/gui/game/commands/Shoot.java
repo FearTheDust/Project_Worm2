@@ -6,8 +6,8 @@ import worms.gui.game.sprites.ProjectileSprite;
 import worms.gui.messages.MessageType;
 import worms.model.IFacade;
 import worms.model.ModelException;
-import worms.model.Projectile;
-import worms.util.Worm;
+import worms.model.world.entity.Projectile;
+import worms.model.world.entity.Worm;
 
 public class Shoot extends Command {
 	private final Worm worm;

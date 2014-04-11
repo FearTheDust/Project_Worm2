@@ -3,7 +3,7 @@ package worms.gui.game.commands;
 import worms.gui.game.PlayGameScreen;
 import worms.gui.messages.MessageType;
 import worms.model.IFacade;
-import worms.util.Worm;
+import worms.model.world.entity.Worm;
 
 public class Turn extends InstantaneousCommand {
 	private final Worm worm;

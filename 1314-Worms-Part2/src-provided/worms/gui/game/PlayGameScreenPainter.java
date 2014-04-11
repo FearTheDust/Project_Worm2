@@ -22,8 +22,8 @@ import worms.gui.game.sprites.ProjectileSprite;
 import worms.gui.game.sprites.WormSprite;
 import worms.model.IFacade;
 import worms.model.ModelException;
-import worms.model.World;
-import worms.util.Worm;
+import worms.model.world.World;
+import worms.model.world.entity.Worm;
 
 public class PlayGameScreenPainter extends AbstractPainter<PlayGameScreen> {
 

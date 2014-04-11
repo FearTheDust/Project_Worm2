@@ -4,7 +4,7 @@ import worms.gui.game.PlayGameScreen;
 import worms.gui.messages.MessageType;
 import worms.model.IFacade;
 import worms.model.ModelException;
-import worms.util.Worm;
+import worms.model.world.entity.Worm;
 
 public class SelectNextWeapon extends InstantaneousCommand {
 	private final Worm worm;

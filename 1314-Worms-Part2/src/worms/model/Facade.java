@@ -6,10 +6,7 @@ import java.util.Random;
 
 import worms.model.equipment.weapons.Weapon;
 import worms.model.world.World;
-import worms.model.world.entity.Food;
-import worms.model.world.entity.GameObject;
-import worms.model.world.entity.Projectile;
-import worms.model.world.entity.Worm;
+import worms.model.world.entity.*;
 import worms.util.Position;
 
 /**
@@ -17,30 +14,6 @@ import worms.util.Position;
  * @author Derkinderen Vincent
  */
 public class Facade implements IFacade {
-
-	@Override
-	public Worm createWorm(double x, double y, double direction, double radius, String name) {
-		try {
-			Position position = new Position(x,y);
-			return new Worm(position, direction, radius, name);
-		} catch(IllegalArgumentException ex) {
-			throw new ModelException(ex.getMessage());
-		}
-	}
-
-	/*@Override
-	public boolean canMove(Worm worm, int nbSteps) {
-		return nbSteps >= 0 && Worm.getMoveCost(nbSteps, worm.getAngle()) <= worm.getCurrentActionPoints();
-	}*/
-
-	/*@Override
-	public void move(Worm worm, int nbSteps) throws ModelException {
-		try {
-			worm.move(nbSteps);
-		} catch(IllegalArgumentException ex) {
-			throw new ModelException(ex.getMessage());
-		}
-	}*/
 
 	@Override
 	public boolean canTurn(Worm worm, double angle) {
@@ -57,20 +30,6 @@ public class Facade implements IFacade {
 			angle -= 2*Math.PI;
 		}
 		worm.turn(angle);
-	}
-
-	@Override
-	public void jump(Worm worm) {
-		try {
-			worm.jump();
-		} catch(IllegalArgumentException ex) {
-			throw new ModelException(ex.getMessage());
-		}
-	}
-
-	@Override
-	public double getJumpTime(Worm worm) {
-		return worm.jumpTime();
 	}
 
 	@Override
@@ -162,8 +121,28 @@ public class Facade implements IFacade {
 	@Override
 	public void addNewWorm(World world) {
 		Position position = world.getRandomAdjacentPos(1);
-		if(position!=null)
-			createWorm(world, position.getX(), position.getY(), 0, 1, "Eric"+(int) position.getX()+(int) position.getY());
+		Worm worm;
+
+		if(position!=null) {
+			worm = createWorm(world, position.getX(), position.getY(), 0, 1, "Eric"+(int) position.getX()+(int) position.getY());
+
+			int randomNumber = world.getRandom().nextInt(2);
+			if(randomNumber == 0) {
+				int minMembers = Integer.MAX_VALUE;
+				Team smallestTeam = null;
+
+				for(Team team : world.getTeams()) {
+					if(team.getWorms().size()<minMembers) {
+						minMembers = team.getWorms().size();
+						smallestTeam = team;
+					}
+				}
+				if(smallestTeam!=null)
+					smallestTeam.add(worm);
+			}
+		}
+
+		//TODO random name list.
 
 	}
 
@@ -224,20 +203,19 @@ public class Facade implements IFacade {
 
 	@Override
 	public double[] getJumpStep(Projectile projectile, double t) {
-		// TODO Auto-generated method stub
-		return null;
+		Position position = projectile.jumpStep(t);
+
+		return new double[] {position.getX(), position.getY()};
 	}
 
 	@Override
 	public double getJumpTime(Projectile projectile, double timeStep) {
-		// TODO Auto-generated method stub
-		return 0;
+		return projectile.jumpTime(timeStep);
 	}
 
 	@Override
 	public double getJumpTime(Worm worm, double timeStep) {
-		// TODO Auto-generated method stub
-		return 0;
+		return worm.jumpTime(timeStep);
 	}
 
 	@Override
@@ -338,14 +316,12 @@ public class Facade implements IFacade {
 
 	@Override
 	public void jump(Projectile projectile, double timeStep) {
-		// TODO Auto-generated method stub
-
+		projectile.jump(timeStep);
 	}
 
 	@Override
 	public void jump(Worm worm, double timeStep) {
-		// TODO Auto-generated method stub
-
+		worm.jump(timeStep);
 	}
 
 	@Override
@@ -360,13 +336,18 @@ public class Facade implements IFacade {
 
 	@Override
 	public void shoot(Worm worm, int yield) {
-		// TODO Auto-generated method stub
+		if(worm.getCurrentWeapon() == null)
+			throw new ModelException("The worms hasn't got a weapon equipped.");
 
+		WeaponProjectile projectile = worm.getCurrentWeapon().createProjectile(yield);
+		worm.getWorld().setLivingProjectile(projectile);
+		worm.getWorld().add(projectile);
+
+		//TODO: jump?
 	}
 
 	@Override
 	public void startGame(World world) {
-		//TODO add worms & co
 		world.startGame();
 	}
 

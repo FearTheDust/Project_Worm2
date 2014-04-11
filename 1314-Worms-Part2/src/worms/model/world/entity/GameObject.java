@@ -20,22 +20,17 @@ public abstract class GameObject {
 	 * Initialize a GameObject with a certain Position in a world.
 	 * 
 	 * @param position The position of the GameObject.
+	 * 
 	 * @throws IllegalArgumentException
-	 * 			When position isn't valid.
-	 * 			| !this.isValidPosition(position);
-	 * 			When the world is null.
-	 * 			| world == null
+	 * 			When position isn't valid or When the world is null.
+	 * 			| !this.isValidPosition(position) || world == null
 	 */
 	@Raw
 	public GameObject(World world, Position position) throws IllegalArgumentException {
-		if(!isValidPosition(position))
-			throw new IllegalArgumentException();
-		
 		if(world == null)
 			throw new IllegalArgumentException();
-		
-		this.setPosition(position);
 		this.world = world;
+		this.setPosition(position);
 	}
 	
 	/**
@@ -91,15 +86,15 @@ public abstract class GameObject {
 	 * 			| if position == null
 	 * 			| then result == false
 	 * @return False if the x & y aren't in the boundaries of the world.
-	 * 			| if(!(world.getHeight() <= position.getY() && position.getY() >= 0 && world.getWidth <= position.getX() && position.getX() >= 0))
+	 * 			| if(!(world.getHeight() >= position.getY() && position.getY() >= 0 && world.getWidth >= position.getX() && position.getX() >= 0))
 	 * 			| then result == false
 	 */
 	public boolean isValidPosition(Position position) { //TODO (vraag) static? Maar static overerft toch niet?
 		if(position == null)
 			return false;
-		if(!(world.getHeigth() <= position.getY() && position.getY() >= 0))
+		if(!(this.getWorld().getHeight() >= position.getY() && position.getY() >= 0))
 			return false;
-		if(!(world.getWidth() <= position.getX() && position.getX() >= 0))
+		if(!(this.getWorld().getWidth() >= position.getX() && position.getX() >= 0))
 			return false;
 			
 		return true;
@@ -113,10 +108,7 @@ public abstract class GameObject {
 	 * If the worm is dead this will automatically return null.
 	 */
 	public World getWorld() {
-		if(this.isAlive()) {
-			return world;
-		}
-		return null;
+		return world;
 	}
 	
 	protected World world;

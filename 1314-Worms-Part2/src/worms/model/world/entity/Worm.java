@@ -60,11 +60,6 @@ import worms.util.*;
 public class Worm extends GameObject {
 
 	/**
-	 * The time a worm will exert a force on its body.
-	 */
-	public static final double FORCE_TIME = 0.5;
-
-	/**
 	 * Initialize a new worm with a certain position, angle, radius, name, a certain amount of action points and a certain amount of hit points.
 	 * 
 	 * @param world The world of the new worm.
@@ -111,8 +106,8 @@ public class Worm extends GameObject {
 		world.add(this);
 
 		// Add & set weapons.
-		this.add(new Rifle());
-		this.add(new Bazooka());
+		this.add(new Rifle(this));
+		this.add(new Bazooka(this));
 		this.setCurrentWeapon(this.getNextWeapon());
 	}
 
@@ -139,19 +134,15 @@ public class Worm extends GameObject {
 	/**
 	 * This worm jumps to a certain position calculated by a formula.
 	 * 
-	 * @post	The current amount of action points is 0 if the current angle isn't greater than Math.PI.
-	 * 			| if(!(this.getAngle() > Math.PI)) Then
+	 * @post	The current amount of action points is 0.
 	 * 			| new.getCurrentActionPoints() == 0
 	 * 
-	 * @effect The new position of this worm is calculated and set if the current angle isn't greater than Math.PI.
-	 * 			| if(!(this.getAngle() > Math.PI)) Then
+	 * @effect The new position of this worm is calculated and set.
 	 * 			| this.setPosition(this.jumpStep(this.jumpTime()))
 	 */
-	public void jump() {
-		if (!(this.getAngle() > Math.PI)) {
-			this.setPosition(this.jumpStep(this.jumpTime()));
+	public void jump(double timeStep) {
+			this.setPosition(this.jumpStep(this.jumpTime(timeStep)));
 			this.setCurrentActionPoints(0);
-		}
 	}
 
 	/**
@@ -159,8 +150,8 @@ public class Worm extends GameObject {
 	 * 
 	 * @param time The time of when we return the position.
 	 * 
-	 * @return	When the time equals 0 or the angle of this worm is greater than Math.PI, the current position will be returned.
-	 * 			| if((time == 0) || (this.getAngle() > Math.PI)) Then
+	 * @return	When the time equals 0 the current position will be returned.
+	 * 			| if(time == 0) Then
 	 * 			| result == this.getPosition(); 
 	 * 
 	 * @return Else return The position this worm has at a certain time in a jump.
@@ -175,14 +166,10 @@ public class Worm extends GameObject {
 	 * 			| result == new Position(x,y)
 	 * 
 	 * @throws IllegalArgumentException
-	 * 			When time exceeds the time required to jump or time is a negative value.
-	 * 			| (time > this.jumpTime() || time < 0)
+	 * 			When time is a negative value.
+	 * 			| (time < 0)
 	 */
 	public Position jumpStep(double time) throws IllegalArgumentException {
-		if (!Util.fuzzyLessThanOrEqualTo(time, jumpTime()))
-			throw new IllegalArgumentException(
-					"The time can't be greater than the time needed to perform the whole jump. Time: "
-							+ time + " and jumpTime: " + jumpTime());
 		if (time < 0)
 			throw new IllegalArgumentException("The time can't be negative.");
 
@@ -190,15 +177,10 @@ public class Worm extends GameObject {
 			return this.getPosition();
 		}
 
-		if (this.getAngle() > Math.PI) { // TODO Math.PI / 2 shouldn't change
-											// position when jumping from this.
-			return this.getPosition();
-		}
-
 		// Calculation
 		double force = 5 * this.getCurrentActionPoints() + this.getMass()
 				* Constants.EARTH_ACCELERATION;
-		double startSpeed = (force / this.getMass()) * FORCE_TIME;
+		double startSpeed = (force / this.getMass()) * this.getForceTime();
 
 		double startSpeedX = startSpeed * Math.cos(this.getAngle());
 		double startSpeedY = startSpeed * Math.sin(this.getAngle());
@@ -211,39 +193,32 @@ public class Worm extends GameObject {
 		// Return
 		return new Position(x, y);
 	}
+	
+	/**
+	 * Returns the time a force is exerted on a worm's body.
+	 */
+	@Basic @Immutable
+	public double getForceTime() {
+		return Constants.FORCE_TIME;
+	}
 
 	/**
 	 * Returns the jump time if jumped with this worm's current angle.
 	 * 
-	 * @return The time used to jump. When this worm's angle is greater than Math.PI, 0 is returned.
-	 * 			| If this.getAngle() > Math.PI Then 
-	 * 			| result == 0
-	 * 			| Else
-	 * 			| force = 5 * this.getCurrentActionPoints() + this.getMass() * Constants.EARTH_ACCELERATION
-	 * 			| startSpeed = (force / this.getMass()) * FORCE_TIME
-	 * 			| time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / Constants.EARTH_ACCELERATION);
-	 * 			| result == time
+	 * TODO: Documentation formally
 	 */
-	public double jumpTime() {
-		// this.getAngle() will automatically be less than 2*Math.PI because of
-		// the invariant.
-		if (this.getAngle() > Math.PI) {
-			return 0;
+	public double jumpTime(double timeStep) {
+		double loopTime = timeStep;
+		Position calculatedPosition = this.getPosition();
+		
+		while((!this.getWorld().isAdjacent(calculatedPosition, this.getRadius()) || this.getPosition().distance(calculatedPosition) <= this.getRadius()) && 
+				!this.getWorld().isImpassable(calculatedPosition, this.getRadius())) {
+			calculatedPosition = this.jumpStep(loopTime);
+			loopTime += timeStep;
 		}
-		// sin(2X) = 2sin(X)cos(X); so 2sin(X)cos(X)/cos(X) => 2sin(X) => return
-		// 0 => time can never be negative.
-		double force = 5 * this.getCurrentActionPoints() + this.getMass()
-				* Constants.EARTH_ACCELERATION;
-		double startSpeed = (force / this.getMass()) * FORCE_TIME;
-		// double distance = (Math.pow(startSpeed, 2) * Math.sin(2 *
-		// this.getAngle())) / Constants.EARTH_ACCELERATION;
-		// double time = Math.abs(distance / (startSpeed *
-		// Math.cos(this.getAngle()))); division by zero -- actually this works
-		// non the less it seems @see Project 1 testWorm
-		double time = Math.abs(2 * startSpeed * Math.sin(this.getAngle())
-				/ Constants.EARTH_ACCELERATION);
-
-		return time;
+		loopTime -= timeStep; //one step back
+		
+		return loopTime;
 	}
 
 	/**
@@ -597,12 +572,12 @@ public class Worm extends GameObject {
 	 * Returns whether this worm's hit points equals 0.
 	 */
 	public boolean isAlive() {
-		if (this.world == null)
+		if (this.getWorld() == null)
 			return false;
 
-		if (this.getPosition().getX() > this.world.getWidth()
+		if (this.getPosition().getX() > this.getWorld().getWidth()
 				|| this.getPosition().getX() < 0
-				|| this.getPosition().getY() > this.world.getHeigth()
+				|| this.getPosition().getY() > this.getWorld().getHeight()
 				|| this.getPosition().getY() < 0)
 			return false;
 
@@ -750,29 +725,34 @@ public class Worm extends GameObject {
 		for (double currentAngle = this.getAngle() - 0.7875; currentAngle <= this
 				.getAngle() + 0.7875; currentAngle += 0.0175) {
 
-			double a = 0.1;
+			double distance = 0.1;
 			boolean found = false;
 
-			while (a <= this.getRadius() && !found) {
-				double PosX = a * Math.cos(currentAngle)
+			while (distance <= this.getRadius() && !found) {
+				double PosX = distance * Math.cos(currentAngle)
 						+ this.getPosition().getX();
-				double PosY = a * Math.sin(currentAngle)
+				double PosY = distance * Math.sin(currentAngle)
 						+ this.getPosition().getY();
 				Position Pos = new Position(PosX, PosY);
 
-				if (this.getWorld().isAdjacent(Pos, this.getRadius())) {
-					a += 0.1;
+				if (!this.getWorld().isImpassable(Pos, this.getRadius())) { //isAdjacent fout, Brent had gelijk, ze bedoelen dat niet zo.
+					distance += 0.1;
 				} else {
 					found = true;
 				}
 			}
+			
+			/*if(Util.fuzzyEquals(currentAngle, this.getAngle(), 1E-2)) {
+				System.out.println("a was " + distance + " with angle " + currentAngle + " and currentAngle " + this.getAngle());
+			}*/
 
-			a -= 0.1;
-			Position newPos = new Position(a * Math.cos(currentAngle)
-					+ this.getPosition().getX(), a * Math.sin(currentAngle)
+			distance -= 0.1;
+			Position newPos = new Position(distance * Math.cos(currentAngle)
+					+ this.getPosition().getX(), distance * Math.sin(currentAngle)
 					+ this.getPosition().getY());
-			if (a >= 0.1) {
-				double compare = Math.abs(this.getRadius() - currentAngle) / a;
+			
+			if (distance >= 0.1) {
+				double compare = Math.abs(this.getAngle() - currentAngle) / distance;
 				if (compare < minimize) {
 					minimize = compare;
 					bestPos = newPos;
@@ -820,7 +800,7 @@ public class Worm extends GameObject {
 	 * 			| for x from Math.max(Math.floor(this.getPosition().getX() - this.getRadius(),0) until 
 	 * 			| (x <= Math.ceil(this.getPosition().getX() + this.getRadius()) && x <= this.getWorld().getWidth() && x <= Integer.MAX_VALUE)
 	 * 			| isn't true with step 1
-	 * 			|		if(!this.getWorld().isPassableTile(new Position(x,this.getPosition().getY())))
+	 * 			|		if(!this.getWorld().isPassableTile(new Position(x,this.getPosition().getY() - this.getRadius())))
 	 *			|			result == false;
 	 *			| result == true
 	 */
@@ -828,15 +808,44 @@ public class Worm extends GameObject {
 		if (this.getWorld() == null)
 			return false;
 
-		for (double x = Math.max(
-				Math.floor(this.getPosition().getX() - this.getRadius()), 0); x <= Math
-				.ceil(this.getPosition().getX() + this.getRadius())
-				&& x <= this.getWorld().getWidth() && x <= Integer.MAX_VALUE; x++) {
-			if (!this.getWorld().isPassableTile(
-					new Position(x, this.getPosition().getY())))
+		/*for (double x = Math.max(Math.floor(this.getPosition().getX() - this.getRadius()), 0); 
+				x <= Math.ceil(this.getPosition().getX() + this.getRadius())
+				&& x <= this.getWorld().getWidth() && x / this.getWorld().getScale() <= Integer.MAX_VALUE; 
+					x++) {
+			
+			for(double testRadius = this.getRadius(); testRadius <= 1.1*this.getRadius(); testRadius += this.getWorld().getScale()) {
+				if (!this.getWorld().isPassableTile(
+						new Position(x, this.getPosition().getY() - testRadius)))
 				return false;
+			}
+			
+			
 		}
-		return true;
+		return true;*/
+		
+		return !this.getWorld().isAdjacent(this.getPosition(), this.getRadius());
+	}
+	
+	/**
+	 * Let this worm fall down until it leaves the world boundaries or is adjacent to impassable terrain, at one moment when falling down,
+	 * as defined by canFall.
+	 * 
+	 * @post The new Y-coordinate of this worm will be equal to or less than the current Y.
+	 * 			| new.getPosition().getY() <= this.getPosition().getY()
+	 * @post The new worm can not fall or isn't alive because he left game boundaries.
+	 * 			| !new.canFall || !new.isAlive()
+	 * 
+	 */
+	public void fall() {
+		Position oldPosition = this.getPosition();
+		
+		while(canFall() && this.getPosition().getY() >= -1) { //-1, to be sure it doesn't end before but doesn't go on forever either.
+			this.setPosition(new Position(this.getPosition().getX(), this.getPosition().getY() - this.getWorld().getScale())); // fall with 1 pixel
+		}
+		
+		double fallenMeters = oldPosition.getY() - this.getPosition().getY();
+		int cost = (int) Math.floor(3*fallenMeters);
+		this.setCurrentHitPoints(this.getCurrentHitPoints() - cost);
 	}
 
 }

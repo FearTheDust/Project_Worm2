@@ -21,19 +21,22 @@ public class World {
 	 */
 	public static final int MAX_TEAM_AMOUNT = 10;
 
-	// TODO Documentation
+	//TODO: Documentation
 	public World(double width, double height, boolean[][] passableMap,
 			Random random) {
 		if (!isValidDimension(width, height))
 			throw new IllegalArgumentException(
 					"The dimension provided isn't a valid dimension for a World");
-
+		if(random == null)
+			throw new IllegalArgumentException("The random parameter was a null reference, which isn't allowed.");
+		
 		this.width = width;
 		this.height = height;
 
 		this.passableMap = passableMap;
 		this.random = random;
 
+		gameObjList = new ArrayList<GameObject>();
 		teamList = new ArrayList<Team>();
 	}
 
@@ -57,25 +60,33 @@ public class World {
 
 		return true;
 	}
+	
+	public Random getRandom() {
+		return this.random;
+	}
 
 	/**
 	 * Scale of the world (in worm-meter per map pixel)
 	 * @return The scale of the map.
-	 * 			| result == this.getHeight / passableMap.length
+	 * 			| result == this.getHeight() / passableMap.length
 	 */
 	public double getScale() {
 		return height / passableMap.length;
 	}
 
-	@Basic
-	@Immutable
+	/**
+	 * Returns the width of this world.
+	 */
+	@Basic @Immutable
 	public double getWidth() {
 		return this.width;
 	}
 
-	@Basic
-	@Immutable
-	public double getHeigth() {
+	/**
+	 * Returns the height of this world.
+	 */
+	@Basic @Immutable
+	public double getHeight() {
 		return this.height;
 	}
 
@@ -143,37 +154,30 @@ public class World {
 	 * @post | getGameObjects().contains(gameObject)
 	 * @throws IllegalArgumentException
 	 * 			| gameObject == null ||
-	 * 			| !liesWithinBoundaries(gameObject)
-	 * 			| !gameObject.isAlive()
+	 * 			| !liesWithinBoundaries(gameObject) ||
+	 * 			| !gameObject.isAlive() ||
 	 * 			| (gameObject instanceof Projectile && gameObject != this.getLivingProjectile())
+	 * 
 	 * @throws IllegalStateException
-	 * 			| !(gameObject instanceof Projectile) && this.getState()!=WorldState.INITIALISATION
+	 * 			| !(gameObject instanceof Projectile) && this.getState()!=WorldState.INITIALISATION || 
 	 * 			| (gameObject instanceof Projectile) && this.getState() != WorldState.PLAYING
 	 */
 	public void add(GameObject gameObject)
 			throws IllegalArgumentException, IllegalStateException {
 		if (gameObject == null)
-			throw new IllegalArgumentException(
-					"The GameObject to add to this world was a null reference.");
+			throw new IllegalArgumentException("The GameObject to add to this world was a null reference.");
 		if (!(gameObject instanceof Projectile)
 				&& this.getState() != WorldState.INITIALISATION)
-			throw new IllegalStateException(
-					"Only projectiles can be added after the initialisation of this world");
+			throw new IllegalStateException("Only projectiles can be added after the initialisation of this world");
 		if ((gameObject instanceof Projectile)
 				&& this.getState() != WorldState.PLAYING)
-			throw new IllegalStateException(
-					"Projectiles can only be added during the PLAYING state of this world");
+			throw new IllegalStateException("Projectiles can only be added during the PLAYING state of this world");
 		if (!liesWithinBoundaries(gameObject))
-			throw new IllegalArgumentException(
-					"This object doesn't lie within the boundaries of this world.");
+			throw new IllegalArgumentException("This object doesn't lie within the boundaries of this world.");
 		if (!gameObject.isAlive())
-			throw new IllegalArgumentException(
-					"The object to add must be alive.");
-
-		if (gameObject instanceof Projectile
-				&& gameObject != this.getLivingProjectile()) {
-			throw new IllegalArgumentException(
-					"The projectile must be set as the living projectile of this world first.");
+			throw new IllegalArgumentException("The object to add must be alive.");
+		if (gameObject instanceof Projectile && gameObject != this.getLivingProjectile()) {
+			throw new IllegalArgumentException("The projectile must be set as the living projectile of this world first.");
 		}
 
 		gameObjList.add(gameObject);
@@ -197,7 +201,7 @@ public class World {
 			return false;
 		if (!((gameObject.getPosition().getY() - gameObject.getRadius() >= 0) && gameObject
 				.getPosition().getY() + gameObject.getRadius() <= this
-					.getHeigth()))
+					.getHeight()))
 			return false;
 		return true;
 	}
@@ -369,8 +373,7 @@ public class World {
 					previousWormFound = true;
 			}
 
-			// Found current active worm but reached end of list, go back to the
-			// start.
+			// Found current active worm but reached end of list, back to the start.
 			for (GameObject gameObject : this.getGameObjects()) {
 				if (gameObject instanceof Worm && ((Worm) gameObject).isAlive()
 						&& gameObject != this.getActiveWorm())
@@ -421,23 +424,17 @@ public class World {
 	 */
 	public boolean isImpassable(Position position, double radius) {
 		for (double row = Math.max(
-				Math.floor((position.getY() - radius) * this.getScale()), 0); row <= Math
-				.min(Math.ceil((position.getY() + radius) * this.getScale()),
-						height)
-				&& row <= Integer.MAX_VALUE; row++) {
+				Math.floor((position.getY() - radius) / this.getScale()), 0); row <= Math.ceil((position.getY() + radius) / this.getScale())
+						&& row < passableMap.length; row++) {
 
 			// TODO: Double.MAX_VALUE
 			// TODO: (vraag) -- [int][int] maar we praten over double met groter
 			// bereik???
-			for (double column = Math
-					.max(Math.floor((position.getX() - radius)
-							* this.getScale()), 0); column <= Math.min(
-					Math.ceil((position.getX() + radius) * this.getScale()),
-					width) && column <= Integer.MAX_VALUE; column++) { // Double.MAX_VALUE
-				if (!passableMap[(int) row][(int) column]
-						&& Math.pow(row - position.getY(), 2)
-								+ Math.pow(column - position.getX(), 2) <= Math
-									.pow(radius, 2))
+			for (double column = Math.max(Math.floor((position.getX() - radius) / this.getScale()), 0); 
+					column <= Math.ceil((position.getX() + radius) / this.getScale()) && column <  passableMap[0].length; 
+					column++) {
+				if (!passableMap[(int) row][(int) column] && Math.pow(row * this.getScale() - position.getY(), 2)
+								+ Math.pow(column * this.getScale() - position.getX(), 2) <= Math.pow(radius, 2))
 					return true;
 			}
 		}
@@ -456,66 +453,102 @@ public class World {
 	 * TODO: (vraag) Formeel? gewoon die code kopiëren?
 	 */
 	public boolean isAdjacent(Position position, double radius) {
-		radius *= 0.1;
-
 		boolean adjacentFound = false;
+		//scale = meter per pixel => row&column = pixels
+		double startRow = (position.getY() - 1.1*radius)
+				/ this.getScale();
+		double startColumn = (position.getX() - 1.1*radius)
+				/ this.getScale();
 
-		double startRow = Math.floor((position.getY() - radius - 1)
-				* this.getScale());
-		double startColumn = Math.floor((position.getX() - radius - 1)
-				* this.getScale());
+		double endRow = (position.getY() + 1.1*radius)
+				/ this.getScale();
+		double endColumn = (position.getX() + 1.1*radius)
+				/ this.getScale();
 
-		double endRow = Math.ceil((position.getY() + radius + 1)
-				* this.getScale());
-		double endColumn = Math.ceil((position.getX() + radius + 1)
-				* this.getScale());
-
-		for (double row = startRow; row <= endRow && row <= Integer.MAX_VALUE
-				&& row <= height; row++) { // TODO: Double.MAX_VALUE
+		System.out.println("end column " + endColumn + " end row" + endRow);
+		//System.out.println("Testing passableMap 2,1  " + passableMap[2][1]);
+		//System.out.println("Testing passableMap 3,1 " + passableMap[3][1]);
+		
+		for (double row = Math.max(startRow, 0); row <= endRow && Math.floor(row) < passableMap.length; row++) { // TODO: Double.MAX_VALUE
 			// TODO: (vraag) -- [int][int] maar we praten over double met groter
 			// bereik???
-			for (double column = startColumn; column <= endColumn
-					&& column <= Integer.MAX_VALUE && column <= width; column++) { // TODO:
+			for (double column = Math.max(startColumn, 0); column <= endColumn && Math.floor(column) < passableMap[0].length; column++) { // TODO:
+				
+				System.out.print("[" + row + "," + column + "]");
 				// Double.MAX_VALUE
-				if (!passableMap[(int) row][(int) column]) {
-
-					if (Math.pow(row - position.getY(), 2)
-							+ Math.pow(column - position.getX(), 2) >= Math
+				if (!passableMap[(int) Math.floor(row)][(int) Math.floor(column)]) {
+					if (Math.pow(row*this.getScale() - position.getY(), 2)
+							+ Math.pow(column*this.getScale() - position.getX(), 2) > Math
 								.pow(radius, 2)
-							&& Math.pow(row - position.getY(), 2)
-									+ Math.pow(column - position.getX(), 2) <= Math
-										.pow(radius + 1, 2)) {
-						// Outside the inner circle and inside the outern circle
+							&& Math.pow(row*this.getScale() - position.getY(), 2)
+									+ Math.pow(column*this.getScale() - position.getX(), 2) < Math
+										.pow(1.1*radius, 2)) { 
+						// Outside the inner circle and inside the outer circle
 						adjacentFound = true;
-					} else if (Math.pow(row - position.getY(), 2)
-							+ Math.pow(column - position.getX(), 2) <= Math
+					} else if (Math.pow(row*this.getScale() - position.getY(), 2)
+							+ Math.pow(column*this.getScale() - position.getX(), 2) < Math
 								.pow(radius, 2)) {
 						// Inside the inner circle
 						return false;
 					}
+					
+					if(Math.floor(row) == 3.0 && Math.floor(column) == 1.0) {
+						System.out.println("been here but found was " + adjacentFound);
+						System.out.println("first=" + (Math.pow(row*this.getScale() - position.getY(), 2)
+								+ Math.pow(column*this.getScale() - position.getX(), 2)));
+						System.out.println("second=" + Math.pow(1.1*radius, 2));
+						
+						
+					}
 				}
 			}
+			System.out.println("");
 		}
 
 		return adjacentFound;
 	}
 
 	/**
-	 * Returns whether the position ((int) Math.floor(position.getY()), (int) Math.floor(position.getX()) is a passable 'Tile'
+	 * Returns whether the position ((int) Math.floor(position.getY() /this.getScale()), (int) Math.floor(position.getX() / this.getScale()) is a passable 'Tile'
 	 * 
 	 * @param position The position to check.
+	 * 
 	 * @return Whether the tile is passable.
-	 * 			| if(passableMap[(int) Math.floor(position.getY())][(int) Math.floor(position.getX())])
+	 * 			| if(Math.floor(position.getY() / this.getScale()) > passableMap.length || Math.floor(position.getX() / this.getScale()) > passableMap.length)
+	 *			| result == false;
+	 *
+	 * 			| if(passableMap[(int) Math.floor(position.getY() / this.getScale())][(int) Math.floor(position.getX() / this.getScale())])
 	 * 			| result == true;
 	 * 			| else
 	 * 			| result == false
 	 */
 	public boolean isPassableTile(Position position) {
-		if (passableMap[(int) Math.floor(position.getY() * this.getScale())][(int) Math
-				.floor(position.getX() * this.getScale())])
+		if(Math.floor(position.getY() / this.getScale()) > passableMap.length || Math.floor(position.getX() / this.getScale()) > passableMap.length)
+			return false;
+				
+		if (passableMap[(int) Math.floor(position.getY() / this.getScale())][(int) Math
+				.floor(position.getX() / this.getScale())])
 			return true;
 
 		return false;
+	}
+	
+	/**
+	 * TODO fill in
+	 * @param position
+	 * @param radius
+	 * @return
+	 */
+	public ArrayList<Worm> hitsWorm(Position position, double radius) {
+		ArrayList<Worm> worms = new ArrayList<Worm>(this.getWorms());
+		ArrayList<Worm> result = new ArrayList<Worm>();
+		for (Worm worm : worms) {
+			double distance = worm.getPosition().distance(position);
+			if (distance < worm.getRadius() + radius) {
+				result.add(worm);
+			}
+		}
+		return result;
 	}
 
 	/**
@@ -535,9 +568,9 @@ public class World {
 	 */
 	public Position getRandomAdjacentPos(double radius) {
 		Position middlePos = new Position(this.getWidth() / 2,
-				this.getHeigth() / 2);
+				this.getHeight() / 2);
 		Position pos = new Position(this.random.nextDouble() * this.getWidth(),
-				this.random.nextDouble() * this.getHeigth());
+				this.random.nextDouble() * this.getHeight());
 
 		for (int attempt = 0; attempt < 10; attempt++) {
 			if (this.isAdjacent(pos, radius)) {
@@ -548,7 +581,6 @@ public class World {
 						+ pos.getY());
 			}
 		}
-		// ------------------------------------------------
 		return null;
 	}
 
@@ -616,6 +648,7 @@ public class World {
 	/**
 	 * Returns all Food instances in this world.
 	 * @effect getObjectsOfType(Food.Class) along with a cast to cast every instance of type GameObject to Food.
+	 * TODO add formal cast in documentation
 	 */
 	public Collection<Food> getFood() {
 		List<Food> result = new ArrayList<Food>();
@@ -627,13 +660,17 @@ public class World {
 
 	/**
 	 * Delete objects that aren't alive anymore in this world.
+	 * TODO: Add formal documentation
 	 */
 	private void cleanDeadObjects() {
 		for (GameObject obj : this.getGameObjects()) {
-			if (obj instanceof Projectile && obj != this.getLivingProjectile())
+			if (obj instanceof Projectile && obj != this.getLivingProjectile()) {
 				this.gameObjList.remove(obj);
-			else if (!obj.isAlive())
+			} else if (!obj.isAlive()) {
 				this.gameObjList.remove(obj);
+				if(obj == this.getLivingProjectile())
+					this.setLivingProjectile(null);
+			}
 		}
 	}
 

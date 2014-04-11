@@ -1,5 +1,7 @@
 package worms.model.equipment.weapons;
 
+import worms.model.world.entity.Worm;
+
 /**
  * A Rifle is a Weapon with a projectile mass of BAZOOKA_PROJECTILE_MASS kg, a cost of BAZOOKA_SHOOTCOST, a base damage of BAZOOKA_BASEDAMAGE 
  * and a base/max force of BAZOOKA_BASEFORCE/BAZOOKA_MAXFORCE N.
@@ -37,10 +39,13 @@ public class Bazooka extends Weapon {
 
 	
 	/**
-	 * Initialize a Bazooka with a projectile mass of BAZOOKA_PROJECTILE_MASS, damage infliction of BAZOOKA_BASEDAMAGE, a cost to shoot of BAZOOKA_SHOOTCOST and a base force of BAZOOKA_BASEFORCE and a max force of BAZOOKA_MAXFORCE.
+	 * Initialize a Bazooka with an owner, a projectile mass of BAZOOKA_PROJECTILE_MASS, damage infliction of BAZOOKA_BASEDAMAGE, a cost to shoot of BAZOOKA_SHOOTCOST and a base force of BAZOOKA_BASEFORCE and a max force of BAZOOKA_MAXFORCE.
+	 * @param owner The owner of the Bazooka
+	 * 
+	 * @effect super(owner, BAZOOKA_PROJECTILE_MASS, BAZOOKA_BASEDAMAGE, BAZOOKA_SHOOTCOST, BAZOOKA_BASEFORCE, BAZOOKA_MAXFORCE);
 	 */
-	public Bazooka() {
-		super(BAZOOKA_PROJECTILE_MASS, BAZOOKA_BASEDAMAGE, BAZOOKA_SHOOTCOST, BAZOOKA_BASEFORCE, BAZOOKA_MAXFORCE);
+	public Bazooka(Worm owner) {
+		super(owner, BAZOOKA_PROJECTILE_MASS, BAZOOKA_BASEDAMAGE, BAZOOKA_SHOOTCOST, BAZOOKA_BASEFORCE, BAZOOKA_MAXFORCE);
 	}
 	
 	@Override

@@ -1,5 +1,7 @@
 package worms.model.equipment.weapons;
 
+import worms.model.world.entity.Worm;
+
 /**
  * A Rifle is a Weapon with a projectile mass of RIFLE_MASS kg, a cost of RIFLE_SHOOTCOST, a base damage of RIFLE_BASEDAMAGE
  * and a base/max force of RIFLE_BASEFORCE/RIFLE_MAXFORCE N.
@@ -37,9 +39,12 @@ public class Rifle extends Weapon {
 	
 	/**
 	 * Initialize a Rifle with a projectile mass of RIFLE_PROJECTILE_MASS, damage infliction of RIFLE_BASEDAMAGE, a cost to shoot of RIFLE_SHOOTCOST and a base force of RIFLE_BASEFORCE and a max force of RIFLE_MAXFORCE.
+	 * @param owner The owner of this weapon.
+	 * 
+	 * @effect super(owner, RIFLE_PROJECTILE_MASS, RIFLE_BASEDAMAGE, RIFLE_SHOOTCOST, RIFLE_BASEFORCE, RIFLE_MAXFORCE);
 	 */
-	public Rifle() {
-		super(RIFLE_PROJECTILE_MASS, RIFLE_BASEDAMAGE, RIFLE_SHOOTCOST, RIFLE_BASEFORCE, RIFLE_MAXFORCE);
+	public Rifle(Worm owner) {
+		super(owner, RIFLE_PROJECTILE_MASS, RIFLE_BASEDAMAGE, RIFLE_SHOOTCOST, RIFLE_BASEFORCE, RIFLE_MAXFORCE);
 	}
 	
 	@Override

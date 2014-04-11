@@ -1,5 +1,7 @@
 package worms.model.world.entity;
 
+import java.util.ArrayList;
+
 import be.kuleuven.cs.som.annotate.Immutable;
 import worms.model.equipment.weapons.Weapon;
 import worms.model.world.World;
@@ -21,14 +23,18 @@ public class WeaponProjectile extends Projectile {
 	 * @param position The position where the Weapon Projectile starts from.
 	 * @param angle The angle representing the orientation where the Weapon Projectile is fired at.
 	 * @param forceTime The time a force is exerted on the Weapon Projectile.
+	 * @param propulsionYield The propulsionYield where this WeaponProjectile is shot with.
 	 * @param usedWeapon The weapon used to fire this Weapon Projectile.
 	 * 
-	 * @effect super(position, angle, forceTime)
+	 * @effect super(world, position, angle, forceTime, propulsionYield, usedWeapon)
+	 * @post	| new.getUsedWeapon() == usedWeapon
+	 * @post	| new.getMass() == usedWeapon.getProjectileMass()
+	 * 
 	 * @throws IllegalArgumentException
 	 * 			| !isValidWeapon(usedWeapon)
 	 */
-	public WeaponProjectile(World world, Position position, double angle, double forceTime, Weapon usedWeapon) throws IllegalArgumentException {
-		super(world, position, angle, forceTime);
+	public WeaponProjectile(World world, Position position, double angle, double forceTime, double propulsionYield, Weapon usedWeapon) throws IllegalArgumentException {
+		super(world, position, angle, forceTime, propulsionYield);
 		
 		if(!isValidWeapon(usedWeapon))
 			throw new IllegalArgumentException("Invalid weapon to create a WeaponProjectile.");
@@ -39,12 +45,12 @@ public class WeaponProjectile extends Projectile {
 	private final Weapon usedWeapon;
 
 	@Override
-	public double getForce(double propulsionYield) {
-		return usedWeapon.getForce(propulsionYield);
+	public double getForce() {
+		return usedWeapon.getForce(this.getPropulsionYield());
 	}
 
 	@Override
-	public double getMass() {
+	public final double getMass() {
 		return usedWeapon.getProjectileMass();
 	}
 
@@ -55,14 +61,35 @@ public class WeaponProjectile extends Projectile {
 	
 	/**
 	 * Returns whether or not the weapon is a valid weapon.
-	 * @return  | if (weapon == null)
-	 * 			| then result == false
+	 * @return  | if (weapon == null) then 
+	 * 			| result == false
 	 */
 	public static boolean isValidWeapon(Weapon weapon) {
 		if(weapon == null)
 			return false;
 		
 		return true;
+	}
+	
+	/**
+	 * Returns the jump time if jumped with this projectile's current angle.
+	 * 
+	 * TODO: Documentation formally
+	 */
+	public double jumpTime(double timeStep) {
+		double loopTime = timeStep;
+		Position calculatedPosition = this.getPosition();
+		ArrayList<Worm> hits = new ArrayList<Worm>();
+		
+		
+		while(!((this.getWorld().isAdjacent(calculatedPosition, this.getRadius()) && this.getPosition().distance(calculatedPosition) > this.getRadius()) ||
+				this.getWorld().isImpassable(calculatedPosition, this.getRadius()) || hits.size()>1 || (hits.size()==1 && !hits.contains(this.usedWeapon.getOwner())))) {
+			calculatedPosition = this.jumpStep(loopTime);
+			loopTime += timeStep;
+			hits = this.getWorld().hitsWorm(calculatedPosition, this.getRadius());
+		}
+	
+		return loopTime;
 	}
 
 }

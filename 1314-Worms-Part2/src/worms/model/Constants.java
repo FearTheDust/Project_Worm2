@@ -12,6 +12,11 @@ public class Constants {
 	 */
 	public static final double FOOD_RADIUS = 0.2;
 
+	/**
+	 * The time a force is exerted on some GameObject's.
+	 */
+	public static final double FORCE_TIME = 0.5;
+	
 	private Constants() {
 		//To prevent anyone to make an instance.
 	}

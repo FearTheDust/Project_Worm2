@@ -1,10 +1,11 @@
 package worms.model.world.entity;
 
-import be.kuleuven.cs.som.annotate.*;
+import java.util.ArrayList;
+
 import worms.model.Constants;
 import worms.model.world.World;
 import worms.util.Position;
-import worms.util.Util;
+import be.kuleuven.cs.som.annotate.*;
 
 public abstract class Projectile extends GameObject {
 
@@ -17,23 +18,34 @@ public abstract class Projectile extends GameObject {
 	 * @param position The start position of this projectile.
 	 * @param angle The angle of this projectile.
 	 * @param forceTime The time a force is exerted on this projectile.
+	 * @param propulsionYield The propulsionYield on this projectile.
 	 * 
 	 * @effect super(world, position)
 	 * 
-	 * @post this.getAngle() == angle
-	 * @post this.getForceTime() == forceTime
+	 * @post | new.getAngle() == angle
+	 * @post | new.getForceTime() == forceTime
+	 * @post | new.getPropulsionYield() == propulsionYield
+	 * 
+	 * @throws IllegalArgumentException
+	 * 			When the propulsionYield isn't a valid propulsionYield.
+	 * 			| !isValidPropulsionYield(propulsionYield)
 	 */
-	public Projectile(World world, Position position, double angle,
-			double forceTime) {
+	public Projectile(World world, Position position, double angle, double forceTime, double propulsionYield) throws IllegalArgumentException {
 		super(world, position);
+		
+		if(!isValidPropulsionYield(propulsionYield))
+			throw new IllegalArgumentException("The propulsionYield must be a valid propulsionYield");
+		
 		this.angle = angle;
 		this.forceTime = forceTime;
+		this.propulsionYield = propulsionYield;
 	}
 
 	/**
 	 * Returns the force exerted on the projectile.
 	 */
-	public abstract double getForce(double propulsionYield);
+	@Basic @Immutable
+	public abstract double getForce();
 
 	/**
 	 * Returns the mass of the projectile.
@@ -44,13 +56,49 @@ public abstract class Projectile extends GameObject {
 	 * Returns the density of the projectile.
 	 */
 	public abstract double getDensity();
+	
+	
+	/**
+	 * Checks whether the provided propulsionYield is valid.
+	 * @param propulsionYield The propulsionYield to check.
+	 * @return Whether the propulsionYield is between (inclusive) 0 and 100.
+	 * 			| result == (propulsionYield >= 0 && propulsionYield <= 100)
+	 */
+	public static boolean isValidPropulsionYield(double propulsionYield) {
+		return (propulsionYield >= 0 && propulsionYield <= 100);
+	}
+	
+	/**
+	 * Returns the propulsionYield on this projectile.
+	 */
+	@Basic @Immutable
+	public double getPropulsionYield() {
+		return this.propulsionYield;
+	}
+	
+	private double propulsionYield;
 
 	/**
 	 * Returns whether this Projectile is alive.
-	 * This will always return true since a Projectile can only exist when it is alive.
-	 * Check the world.getLivingProjectile() to know if this projectile is currently alive in that world.
+	 * This will return false:
+	 * when an object isn't in a world.
+	 * When an object isn't in the boundaries of a world.
+	 * When the livingProjectile in the world it lives in isn't this projectile.
+	 * 
+	 * @return Whether the worm is alive.
+	 * TODO continue the formal documentation.
 	 */
 	public final boolean isAlive() {
+		if(this.getWorld() == null)
+			return false;
+		
+		if(!(this.getPosition().getX() >= 0 && this.getPosition().getX() <= this.getWorld().getWidth() &&
+			this.getPosition().getY() >= 0 && this.getPosition().getY() <= this.getWorld().getHeight()))
+				return false;
+			
+		if(this.getWorld().getLivingProjectile() != this)
+			return false;
+				
 		return true;
 	}
 
@@ -76,44 +124,37 @@ public abstract class Projectile extends GameObject {
 
 	private double angle;
 
+	/**
+	 * Returns the radius of this Projectile.
+	 */
 	public double getRadius() {
-		return Math.pow(
-				(this.getMass() * 3.0) / (getDensity() * 4.0 * Math.PI),
-				(1 / 3));
+		return Math.pow((this.getMass() * 3.0) / (getDensity() * 4.0 * Math.PI),(1 / 3));
 	}
 
 	/**
-	 * Returns the position where this projectile would be at a certain time whilst jumping.
+	 * Returns the position where this worm would be at a certain time whilst jumping.
 	 * 
 	 * @param time The time of when we return the position.
 	 * 
-	 * @return	When the time equals 0 or the angle of this worm is greater than Math.PI, the current position will be returned.
-	 * 			| if((time == 0) || (this.getAngle() > Math.PI)) Then
+	 * @return	When the time equals 0 the current position will be returned.
+	 * 			| if(time == 0) Then
 	 * 			| result == this.getPosition(); 
 	 * 
 	 * @return Else return The position this worm has at a certain time in a jump.
 	 * 			| Else
-	 * 			| force = 5 * this.getCurrentActionPoints() + this.getMass() * EARTH_ACCELERATION
-	 * 			| startSpeed = (force / this.getMass()) * FORCE_TIME
+	 * 			| startSpeed = (this.getForce() / this.getMass()) * this.getForceTime()
 	 * 			| startSpeedX = startSpeed * Math.cos(this.getAngle())
 	 * 			| startSpeedY = startSpeed * Math.sin(this.getAngle())
 	 * 
 	 * 			| x = this.getPosition().getX() + (startSpeedX * time)
-	 * 			| y = this.getPosition().getY() + (startSpeedY * time - EARTH_ACCELERATION * Math.pow(time,2) / 2)
+	 * 			| y = this.getPosition().getY() + (startSpeedY * time - Constants.EARTH_ACCELERATION * Math.pow(time,2) / 2)
 	 * 			| result == new Position(x,y)
 	 * 
 	 * @throws IllegalArgumentException
-	 * 			When time exceeds the time required to jump or time is a negative value.
-	 * 			| (time > this.jumpTime() || time < 0)
+	 * 			When time is a negative value.
+	 * 			| (time < 0)
 	 */
-	public Position jumpStep(double time, double propulsionYield)
-			throws IllegalArgumentException {
-		if (!Util.fuzzyLessThanOrEqualTo(time, jumpTime(propulsionYield)))
-			throw new IllegalArgumentException(
-					"The time can't be greater than the time needed to perform the whole jump. Time: "
-							+ time
-							+ " and jumpTime: "
-							+ jumpTime(propulsionYield));
+	public Position jumpStep(double time) throws IllegalArgumentException {
 		if (time < 0)
 			throw new IllegalArgumentException("The time can't be negative.");
 
@@ -121,14 +162,8 @@ public abstract class Projectile extends GameObject {
 			return this.getPosition();
 		}
 
-		if (this.getAngle() > Math.PI) { // TODO Math.PI / 2 shouldn't change
-			// position when jumping from this.
-			return this.getPosition();
-		}
-
 		// Calculation
-		double startSpeed = (getForce(propulsionYield) / this.getMass())
-				* getForceTime();
+		double startSpeed = (this.getForce() / this.getMass()) * this.getForceTime();
 
 		double startSpeedX = startSpeed * Math.cos(this.getAngle());
 		double startSpeedY = startSpeed * Math.sin(this.getAngle());
@@ -142,30 +177,19 @@ public abstract class Projectile extends GameObject {
 		return new Position(x, y);
 	}
 
-	// TODO: anglerestriction? botsing grond in rekening brengen?
 	/**
-	 * Returns the jump time if jumped with this projectile's current angle.
-	 * 
-	 * @return The time used to jump. When this projectile's angle is greater than Math.PI, 0 is returned.
-	 * 			| If this.getAngle() > Math.PI Then 
-	 * 			| result == 0
-	 * 			| Else
-	 * 			| startSpeed = (getForce() / this.getProjectileMass()) * getForceTime()
-	 * 			| time = Math.abs(2*startSpeed * Math.sin(this.getAngle()) / Constants.EARTH_ACCELERATION);
-	 * 			| result == time
+	 * Returns the jump time if jumped with this projectile's current angle and timeStep.
 	 */
-	public double jumpTime(double propulsionYield) {
-		if (this.getAngle() > Math.PI) {
-			return 0;
-		}
-		// sin(2X) = 2sin(X)cos(X); so 2sin(X)cos(X)/cos(X) => 2sin(X) => return
-		// 0 => time can never be negative.
-		double startSpeed = (getForce(propulsionYield) / this.getMass())
-				* getForceTime();
-		double time = Math.abs(2 * startSpeed * Math.sin(this.getAngle())
-				/ Constants.EARTH_ACCELERATION);
-
-		return time;
+	public abstract double jumpTime(double timeStep);
+	
+	/**
+	 * This worm jumps to a certain position calculated by a formula.
+	 * 
+	 * @effect The new position of this worm is calculated and set.
+	 * 			| this.setPosition(this.jumpStep(this.jumpTime()))
+	 */
+	public void jump(double timeStep) {
+			this.setPosition(this.jumpStep(this.jumpTime(timeStep)));
 	}
 
 }
