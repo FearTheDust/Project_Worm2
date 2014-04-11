@@ -721,7 +721,7 @@ public class Worm extends GameObject {
 			return null;
 
 		double minimize = 8.0;
-		double bestAngle;
+		double bestAngle = 0;
 		Position bestPos = this.getPosition();
 
 		for (double currentAngle = this.getAngle() - 0.7875; currentAngle <= this
@@ -762,7 +762,7 @@ public class Worm extends GameObject {
 				}
 			}
 		}
-
+		System.out.println(bestAngle);
 		return bestPos;
 	}
 

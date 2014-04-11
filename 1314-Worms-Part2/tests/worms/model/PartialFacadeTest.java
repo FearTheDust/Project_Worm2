@@ -1,9 +1,6 @@
 package worms.model;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
-
+import static org.junit.Assert.*;
 import java.util.Random;
 
 import org.junit.Before;
@@ -77,7 +74,12 @@ public class PartialFacadeTest {
 				}, random);
 		Worm worm = facade.createWorm(world, 1.5, 0.5,
 				Math.PI / 2 - 10 * 0.0175, 0.5, "Test");
-		facade.move(worm);
+		facade.move(worm); 
+//TODO: de fout zit in isImpassable, hij beweegt volgens zijn initiele richting terwijl hij dat niet zou mogen doen
+		double a=worm.getRadius() * Math.cos(worm.getAngle()) + worm.getPosition().getX();
+		double b=worm.getRadius() * Math.sin(worm.getAngle()) + worm.getPosition().getY();
+		System.out.println(a + ", " + b);
+		System.out.println(facade.getX(worm)+ ", " + facade.getY(worm));
 		assertEquals(1.5, facade.getX(worm), EPS);
 		assertEquals(1.0, facade.getY(worm), EPS);
 	}
