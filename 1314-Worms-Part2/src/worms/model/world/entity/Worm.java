@@ -574,6 +574,8 @@ public class Worm extends GameObject {
 	public boolean isAlive() {
 		if (this.getWorld() == null)
 			return false;
+		
+		//TODO: Replace this beneath with a full check? (incl radius) -> if(this.getWorld().liesWithinBoundaries(this)));
 
 		if (this.getPosition().getX() > this.getWorld().getWidth()
 				|| this.getPosition().getX() < 0
@@ -839,8 +841,11 @@ public class Worm extends GameObject {
 	public void fall() {
 		Position oldPosition = this.getPosition();
 		
-		while(canFall() && this.getPosition().getY() >= -1) { //-1, to be sure it doesn't end before but doesn't go on forever either.
-			this.setPosition(new Position(this.getPosition().getX(), this.getPosition().getY() - this.getWorld().getScale())); // fall with 1 pixel
+		while(canFall()) { //-1, to be sure it doesn't end before but doesn't go on forever either.
+			if(this.getPosition().getY() - this.getWorld().getScale() >= -2)
+				this.setPosition(new Position(this.getPosition().getX(), this.getPosition().getY() - this.getRadius()*0.1)); // fall with 1 pixel
+			else
+				break;
 		}
 		
 		double fallenMeters = oldPosition.getY() - this.getPosition().getY();

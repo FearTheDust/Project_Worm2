@@ -48,7 +48,7 @@ public class Food extends GameObject {
 
 	@Override @Basic
 	public boolean isAlive() {
-		return alive;
+		return alive && this.getWorld() != null && this.getWorld().liesWithinBoundaries(this);
 	}
 	
 	/**

@@ -85,17 +85,21 @@ public abstract class GameObject {
 	 * @return False when position == null
 	 * 			| if position == null
 	 * 			| then result == false
-	 * @return False if the x & y aren't in the boundaries of the world.
+	 * 
+	 * TODO the doc down there is wrong, remove.
+	 * 
+	 * 
+	 *@return False if the x & y aren't in the boundaries of the world.
 	 * 			| if(!(world.getHeight() >= position.getY() && position.getY() >= 0 && world.getWidth >= position.getX() && position.getX() >= 0))
 	 * 			| then result == false
 	 */
 	public boolean isValidPosition(Position position) { //TODO (vraag) static? Maar static overerft toch niet?
 		if(position == null)
 			return false;
-		if(!(this.getWorld().getHeight() >= position.getY() && position.getY() >= 0))
+		/*if(!(this.getWorld().getHeight() >= position.getY() && position.getY() >= 0))
 			return false;
 		if(!(this.getWorld().getWidth() >= position.getX() && position.getX() >= 0))
-			return false;
+			return false;*/
 			
 		return true;
 	}

@@ -93,6 +93,12 @@ public class PartialFacadeTest {
 				{ true, true, true },
 				{ true, true, true },
 				{ false, false, false }
+				
+				/*{ false, false, false },
+				{ true, true, true },
+				{ true, true, true },
+				{ true, false, true }*/
+				
 				}, random);
 		Worm worm = facade.createWorm(world, 1.5, 2.5, 3*Math.PI / 2, 0.5,
 				"Test"); //changed angle - Math.PI / 2 -> 3*Math.PI / 2

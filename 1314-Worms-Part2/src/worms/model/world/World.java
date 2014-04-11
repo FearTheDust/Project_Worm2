@@ -453,6 +453,10 @@ public class World {
 	 * TODO: (vraag) Formeel? gewoon die code kopiëren?
 	 */
 	public boolean isAdjacent(Position position, double radius) {
+		
+		if(this.isImpassable(position, radius))
+			return false;
+		
 		boolean adjacentFound = false;
 		//scale = meter per pixel => row&column = pixels
 		double startRow = (position.getY() - 1.1*radius)
@@ -464,45 +468,63 @@ public class World {
 				/ this.getScale();
 		double endColumn = (position.getX() + 1.1*radius)
 				/ this.getScale();
-
-		System.out.println("end column " + endColumn + " end row" + endRow);
-		//System.out.println("Testing passableMap 2,1  " + passableMap[2][1]);
-		//System.out.println("Testing passableMap 3,1 " + passableMap[3][1]);
 		
-		for (double row = Math.max(startRow, 0); row <= endRow && Math.floor(row) < passableMap.length; row++) { // TODO: Double.MAX_VALUE
+		for (double row = Math.max(startRow, 0); Math.floor(row) <= Math.floor(endRow) && Math.floor(row) < passableMap.length; row += radius*0.1) { // TODO: Double.MAX_VALUE
 			// TODO: (vraag) -- [int][int] maar we praten over double met groter
 			// bereik???
-			for (double column = Math.max(startColumn, 0); column <= endColumn && Math.floor(column) < passableMap[0].length; column++) { // TODO:
-				
-				System.out.print("[" + row + "," + column + "]");
+			for (double column = Math.max(startColumn, 0); Math.floor(column) <= Math.floor(endColumn) && Math.floor(column) < passableMap[0].length; column += radius*0.1) { // TODO:
 				// Double.MAX_VALUE
 				if (!passableMap[(int) Math.floor(row)][(int) Math.floor(column)]) {
+					/*for(double i = 0; i < 1; i += 0.1) {
+						if (Math.pow(Math.floor(row*this.getScale()) - position.getY(), 2)
+								+ Math.pow(Math.floor(column*this.getScale())+i - position.getX(), 2) >= Math
+									.pow(radius, 2)
+								&& Math.pow(Math.floor(row*this.getScale()) - position.getY(), 2)
+										+ Math.pow(Math.floor(column*this.getScale())+i - position.getX(), 2) < Math
+											.pow(1.1*radius, 2)) { 
+							System.out.println("Yeeey");
+							// Outside the inner circle and inside the outer circle
+							adjacentFound = true;
+						}
+						
+						if(Math.floor(row) == 3.0 && Math.floor(column) == 1.0) {
+							System.out.println("row " + (Math.floor(row*this.getScale())+i) + " & column " + (Math.floor(column*this.getScale())+i));
+							System.out.println("been here but found was " + adjacentFound);
+							System.out.println("First bit:" + Math.pow(Math.floor(row*this.getScale()) - position.getY(), 2));
+							System.out.println("Second bit:" + Math.pow(Math.floor(column*this.getScale())+i - position.getX(), 2));						
+							System.out.println("Total bit = " + (Math.pow(Math.floor(row*this.getScale()) - position.getY(), 2)
+									+ Math.pow(Math.floor(column*this.getScale())+i - position.getX(), 2)));
+							
+							System.out.println("compared with 1.0 = " + Math.pow(radius, 2));
+							System.out.println("compared with 1.1 = " + Math.pow(1.1*radius, 2));
+						}
+						
+						
+					}*/
+					
 					if (Math.pow(row*this.getScale() - position.getY(), 2)
-							+ Math.pow(column*this.getScale() - position.getX(), 2) > Math
+							+ Math.pow(column*this.getScale() - position.getX(), 2) >= Math
 								.pow(radius, 2)
 							&& Math.pow(row*this.getScale() - position.getY(), 2)
 									+ Math.pow(column*this.getScale() - position.getX(), 2) < Math
 										.pow(1.1*radius, 2)) { 
 						// Outside the inner circle and inside the outer circle
-						adjacentFound = true;
-					} else if (Math.pow(row*this.getScale() - position.getY(), 2)
-							+ Math.pow(column*this.getScale() - position.getX(), 2) < Math
-								.pow(radius, 2)) {
-						// Inside the inner circle
-						return false;
+						return true;
 					}
 					
-					if(Math.floor(row) == 3.0 && Math.floor(column) == 1.0) {
+					/*if(Math.floor(row) == 3.0 && Math.floor(column) == 1.0) {
+						System.out.println("row " + row + " & column " + column);
 						System.out.println("been here but found was " + adjacentFound);
-						System.out.println("first=" + (Math.pow(row*this.getScale() - position.getY(), 2)
+						System.out.println("First bit:" + Math.pow(row*this.getScale() - position.getY(), 2));
+						System.out.println("Second bit:" + Math.pow(column*this.getScale() - position.getX(), 2));						
+						System.out.println("Total bit = " + (Math.pow(row*this.getScale() - position.getY(), 2)
 								+ Math.pow(column*this.getScale() - position.getX(), 2)));
-						System.out.println("second=" + Math.pow(1.1*radius, 2));
 						
-						
-					}
+						System.out.println("compared with 1.0 = " + Math.pow(radius, 2));
+						System.out.println("compared with 1.1 = " + Math.pow(1.1*radius, 2));
+					}*/
 				}
 			}
-			System.out.println("");
 		}
 
 		return adjacentFound;
