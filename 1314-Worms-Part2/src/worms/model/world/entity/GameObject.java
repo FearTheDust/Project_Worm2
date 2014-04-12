@@ -159,7 +159,7 @@ public abstract class GameObject {
 		}
 		return true;*/
 		
-		return !this.getWorld().isAdjacent(this.getPosition(), this.getRadius());
+		return !this.getWorld().isAdjacent(this.getPosition(), this.getRadius()) && !this.getWorld().isImpassable(this.getPosition(), this.getRadius());
 	}
 	
 	/**

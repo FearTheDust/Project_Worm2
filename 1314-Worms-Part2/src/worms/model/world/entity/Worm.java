@@ -476,6 +476,18 @@ public class Worm extends GameObject {
 		this.currentHitPoints = (hitPoints < 0) ? 0 : Math.min(hitPoints,
 				getMaximumHitPoints());
 	}
+	
+	/**
+	 * Inflict damage upon this worm.
+	 * @post	The new hit points amount is less than or equal to the old amount.
+	 * 			| new.getCurrentHitPoints() <= this.getCurrentHitPoints()
+	 */
+	public void inflictHitDamage(int damage) {
+		if(damage < 0)
+			damage = 0;
+		
+		this.setCurrentHitPoints(this.getCurrentHitPoints() - damage);
+	}
 
 	/**
 	 * Return the current amount of hit points in valid form.
@@ -876,6 +888,15 @@ public class Worm extends GameObject {
 		double fallenMeters = oldPosition.getY() - this.getPosition().getY();
 		int cost = (int) Math.floor(3*fallenMeters);
 		this.setCurrentHitPoints(this.getCurrentHitPoints() - cost);
+	}
+	
+	/**
+	 * Executes a soft fall, a fall without damage.
+	 * @effect Execute a fall for this worm.
+	 * 			| super.fall()
+	 */
+	public void softFall() {
+		super.fall();
 	}
 
 }

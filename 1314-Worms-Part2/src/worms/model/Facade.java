@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
+import worms.gui.GUIConstants;
 import worms.model.equipment.weapons.Weapon;
 import worms.model.world.World;
 import worms.model.world.entity.*;
@@ -120,7 +121,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void addNewFood(World world) {
-		Position position = world.getRandomImpassablePos(Constants.FOOD_RADIUS);
+		Position position = world.getRandomPassablePos(Constants.FOOD_RADIUS);
 		if(position!=null) {
 			Food food = createFood(world, position.getX(), position.getY());
 			food.fall();
@@ -129,11 +130,11 @@ public class Facade implements IFacade {
 
 	@Override
 	public void addNewWorm(World world) {
-		Position position = world.getRandomImpassablePos(0.5);
+		Position position = world.getRandomPassablePos(0.5);
 		Worm worm;
 
 		if(position!=null) {
-			worm = createWorm(world, position.getX(), position.getY(), 0, 0.5, "Eric"+ ((int) position.getX()) + "" + ((int) position.getY()));
+			worm = createWorm(world, position.getX(), position.getY(), 0, 0.5, "Eric" + (int) position.getX() + (int) position.getY());
 			worm.fall();
 			
 			int randomNumber = world.getRandom().nextInt(2);
@@ -355,7 +356,13 @@ public class Facade implements IFacade {
 		worm.getWorld().setLivingProjectile(projectile);
 		worm.getWorld().add(projectile);
 
-		//TODO: jump?
+		projectile.jump(GUIConstants.JUMP_TIME_STEP);
+		
+		ArrayList<Worm> hitList = projectile.getWorld().hitsWorm(projectile.getPosition(), projectile.getRadius());
+		
+		for(Worm shotWorm : hitList) {
+			shotWorm.inflictHitDamage(projectile.getUsedWeapon().getDamage());
+		}
 	}
 
 	@Override

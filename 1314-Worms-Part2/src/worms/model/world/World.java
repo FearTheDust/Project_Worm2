@@ -34,7 +34,7 @@ public class World {
 		this.width = width;
 		this.height = height;
 
-		this.passableMap = passableMap;
+		this.passableMap = getInvertedMap(passableMap);
 		this.random = random;
 
 		gameObjList = new ArrayList<GameObject>();
@@ -42,6 +42,21 @@ public class World {
 	}
 
 	private Random random;
+
+	/**
+	 * Invert the passableMap.
+	 * @param passableMap
+	 * @return
+	 */
+	private boolean[][] getInvertedMap(boolean[][] passableMap) {
+		boolean[][] result = new boolean[passableMap.length][];
+
+		for(int row = 0; row < result.length; row++) {
+			result[row] = passableMap[passableMap.length-row-1];
+		}
+
+		return result;
+	}
 
 	/**
 	 * Returns whether the width and height form a valid dimension to be a World.
@@ -360,7 +375,7 @@ public class World {
 	 */
 	public Worm getNextWorm() {
 		//REMARK! Do not use getObjectOfType/getWorms/.. this would clean our previous worm if he was dead.
-		
+
 		if (this.getActiveWorm() == null) {
 			for (GameObject gameObject : this.getGameObjects()) {
 				if (gameObject instanceof Worm && ((Worm) gameObject).isAlive())
@@ -454,7 +469,7 @@ public class World {
 		double startColumn = (position.getX() - radius);
 
 		double endRow = (position.getY() + radius);
-		double endColumn = (position.getX() + radius); //TODO: Scales shouldn't be here!!!!!!!!!!!, re-check.
+		double endColumn = (position.getX() + radius);
 
 		for (double row = Math.max(startRow, 0); Math.floor(row) <= Math.floor(endRow) && Math.floor(row/this.getScale()) < passableMap.length; row += radius*0.1) { // TODO: Double.MAX_VALUE
 			for (double column = Math.max(startColumn, 0); Math.floor(column) <= Math.floor(endColumn) && Math.floor(column/this.getScale()) < passableMap[0].length; column += radius*0.1) {
@@ -465,7 +480,7 @@ public class World {
 							.pow(radius, 2))
 						// inside the inner circle
 						return true;*/
-					 
+
 					if(Util.fuzzyLessThanOrEqualTo(Math.pow(row - position.getY(), 2)
 							+ Math.pow(column - position.getX(), 2), Math
 							.pow(radius, 2), 1E-15) && !Util.fuzzyEquals(Math.pow(row - position.getY(), 2)
@@ -607,6 +622,8 @@ public class World {
 		}
 		return result;
 	}
+	
+	
 
 	/**
 	 * Returns a random adjacent position on this world.
@@ -616,25 +633,15 @@ public class World {
 	 * 
 	 * @return  | TODO: formal documentation
 	 */
-	public Position getRandomImpassablePos(double radius) { //getRandomAdjacentPos(
+	public Position getRandomPassablePos(double radius) { //getRandomAdjacentPos(
 		Position middlePos = new Position(this.getWidth() / 2,
 				this.getHeight() / 2);
 		Position pos = new Position(this.random.nextDouble() * this.getWidth(),
 				this.random.nextDouble() * this.getHeight());
 
 		for (int attempt = 0; attempt < 5; attempt++) {
-			/*if (this.isAdjacent(pos, radius)) {
-				return pos;
-			} else {
-				pos = new Position((middlePos.getX() - pos.getX()) / 2
-						+ pos.getX(), (middlePos.getY() - pos.getY()) / 2
-						+ pos.getY());
-			}*/
-			
 			if(!this.isImpassable(pos, radius)) {
-					return pos;
-					//TODO: Verander deze functie naar ipv adjacent naar niet impassable.
-					//TODO: Tijdens opvragen van niet impassable check of adjacent, zo niet laat de worm vallen?
+				return pos;
 			} else {
 				pos = new Position((middlePos.getX() - pos.getX()) / 2
 						+ pos.getX(), (middlePos.getY() - pos.getY()) / 2
@@ -646,31 +653,33 @@ public class World {
 
 	/**
 	 * Returns the name of a single worm if that worm is the winner, or the name
-	 * of a team if that team is the winner or null if there is no winner or the game hasn't ended yet.
+	 * of a team if that team is the winner or null if there is no winner.
+	 * This assumes the game has ended and only 1 team or 1 worm is left standing.
+	 * 
 	 * @return The winner's name
-	 * 			| if(this.getState() == WorldState.ENDED) then
-	 * 			|  	for each GameObject gameObject in this.getGameObjects()
-	 * 			|		if (gameObject instanceof Worm && ((Worm) gameObject).isAlive())
-	 * 			|			if(((Worm) gameObject).getTeam()==null)
-	 *			|				result = ((Worm) gameObject).getName()
-	 *			|			else
-	 *			|				result = ((Worm) gameObject).getTeam().getName()
+	 * 			| ArrayList<Worm> list = new ArrayList<>(this.getWorms());
+	 * 			| if(list.size() != 0)
+	 * 			|	Worm worm = list.get(0)
+	 * 			|	if(worm.getTeam() != null)
+	 * 			|		return worm.getTeam().getName()
+	 * 			|	else
+	 * 			|		return worm.getName()
 	 *			| else
-	 *			|	result = null
+	 *			| 	result = null
 	 */
 	public String getWinner() {
-		if (this.getState() == WorldState.ENDED) {
-			for (GameObject gameObject : this.getGameObjects()) {
-				if (gameObject instanceof Worm && ((Worm) gameObject).isAlive()) {
-					if (((Worm) gameObject).getTeam() == null) {
-						return ((Worm) gameObject).getName();
-					} else {
-						return ((Worm) gameObject).getTeam().getName();
-					}
-				}
-			}
+		ArrayList<Worm> list = new ArrayList<>(this.getWorms());
+		
+		if(list.size() != 0) {
+			Worm worm = list.get(0);
+			
+			if(worm.getTeam() != null)
+				return worm.getTeam().getName();
+			else
+				return worm.getName();
+		} else {
+			return null;
 		}
-		return null;
 	}
 
 	/**

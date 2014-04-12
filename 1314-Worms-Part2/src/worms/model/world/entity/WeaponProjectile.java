@@ -53,6 +53,13 @@ public class WeaponProjectile extends Projectile {
 	public final double getMass() {
 		return usedWeapon.getProjectileMass();
 	}
+	
+	/**
+	 * Returns the weapon used to shot this WeaponProjectile.
+	 */
+	public final Weapon getUsedWeapon() {
+		return usedWeapon;
+	}
 
 	@Override @Immutable
 	public double getDensity() {
