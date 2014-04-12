@@ -24,12 +24,15 @@ public class Facade implements IFacade {
 	public void turn(Worm worm, double angle) {
 		angle %= 2*Math.PI; //-180 -> 180
 
+		System.out.println("Figuring out how to turn from " + worm.getAngle() + " and turning with " + angle);
+		
 		if(angle < -Math.PI) {
 			angle += 2*Math.PI;
 		} else if(angle > Math.PI) {
 			angle -= 2*Math.PI;
 		}
 		worm.turn(angle);
+		System.out.println("Should've turned. Turned to " + worm.getAngle());
 	}
 
 	@Override
@@ -108,42 +111,51 @@ public class Facade implements IFacade {
 
 	@Override
 	public void addEmptyTeam(World world, String newName) {
-		world.add(new Team(newName));
+		try {
+			world.add(new Team(newName));
+		} catch(IllegalArgumentException ex) {
+			throw new ModelException(ex.getMessage());
+		}
 	}
 
 	@Override
 	public void addNewFood(World world) {
-		Position position = world.getRandomAdjacentPos(Constants.FOOD_RADIUS);
-		if(position!=null)
-			createFood(world, position.getX(), position.getY());
+		Position position = world.getRandomImpassablePos(Constants.FOOD_RADIUS);
+		if(position!=null) {
+			Food food = createFood(world, position.getX(), position.getY());
+			food.fall();
+		}
 	}
 
 	@Override
 	public void addNewWorm(World world) {
-		Position position = world.getRandomAdjacentPos(1);
+		Position position = world.getRandomImpassablePos(0.5);
 		Worm worm;
 
 		if(position!=null) {
-			worm = createWorm(world, position.getX(), position.getY(), 0, 1, "Eric"+(int) position.getX()+(int) position.getY());
-
+			worm = createWorm(world, position.getX(), position.getY(), 0, 0.5, "Eric"+ ((int) position.getX()) + "" + ((int) position.getY()));
+			worm.fall();
+			
 			int randomNumber = world.getRandom().nextInt(2);
 			if(randomNumber == 0) {
 				int minMembers = Integer.MAX_VALUE;
 				Team smallestTeam = null;
 
 				for(Team team : world.getTeams()) {
-					if(team.getWorms().size()<minMembers) {
+					if(team.getWorms().size() < minMembers) {
 						minMembers = team.getWorms().size();
 						smallestTeam = team;
 					}
 				}
+				
 				if(smallestTeam!=null)
 					smallestTeam.add(worm);
 			}
+		} else {
+			System.out.println("Didn't find a position");
 		}
 
 		//TODO random name list.
-
 	}
 
 	@Override
@@ -159,7 +171,6 @@ public class Facade implements IFacade {
 	@Override
 	public Food createFood(World world, double x, double y) {
 		Food newFood = new Food(world, new Position(x,y));
-		world.add(newFood);
 		return newFood;
 	}
 
@@ -178,7 +189,6 @@ public class Facade implements IFacade {
 	@Override
 	public void fall(Worm worm) {
 		worm.fall();
-
 	}
 
 	@Override
@@ -321,7 +331,9 @@ public class Facade implements IFacade {
 
 	@Override
 	public void jump(Worm worm, double timeStep) {
+		System.out.println("Trying to jump");
 		worm.jump(timeStep);
+		System.out.println("Jumped");
 	}
 
 	@Override

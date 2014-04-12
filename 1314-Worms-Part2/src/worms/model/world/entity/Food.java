@@ -28,6 +28,7 @@ public class Food extends GameObject {
 	public Food(World world, Position position) {
 		super(world, position);
 		this.alive = true;
+		world.add(this);
 	}
 
 	/**

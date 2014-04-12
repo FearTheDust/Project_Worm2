@@ -74,12 +74,15 @@ public class PartialFacadeTest {
 				}, random);
 		Worm worm = facade.createWorm(world, 1.5, 0.5,
 				Math.PI / 2 - 10 * 0.0175, 0.5, "Test");
+		
+		double a = worm.getPosition().getX() + 0.5*Math.cos(1.4832963267948975);
+		double b = worm.getPosition().getY() + 0.5*Math.sin(1.4832963267948975);
+		
 		facade.move(worm); 
 //TODO: de fout zit in isImpassable, hij beweegt volgens zijn initiele richting terwijl hij dat niet zou mogen doen
-		double a=worm.getRadius() * Math.cos(worm.getAngle()) + worm.getPosition().getX();
-		double b=worm.getRadius() * Math.sin(worm.getAngle()) + worm.getPosition().getY();
-		System.out.println(a + ", " + b);
+		System.out.println("a " + a + " & b " + b);
 		System.out.println(facade.getX(worm)+ ", " + facade.getY(worm));
+		
 		assertEquals(1.5, facade.getX(worm), EPS);
 		assertEquals(1.0, facade.getY(worm), EPS);
 	}

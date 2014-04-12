@@ -1,11 +1,10 @@
 package worms.model.world.entity;
 
-import java.util.ArrayList;
-
 import worms.model.Constants;
 import worms.model.world.World;
 import worms.util.Position;
-import be.kuleuven.cs.som.annotate.*;
+import be.kuleuven.cs.som.annotate.Basic;
+import be.kuleuven.cs.som.annotate.Immutable;
 
 public abstract class Projectile extends GameObject {
 

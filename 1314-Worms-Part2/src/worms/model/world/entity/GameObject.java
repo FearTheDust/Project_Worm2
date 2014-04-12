@@ -132,5 +132,56 @@ public abstract class GameObject {
 	 * The radius of the GameObject
 	 */
 	public abstract double getRadius();
+	
+	/**
+	 * Returns whether this worm can fall.
+	 * @return False if this gameObject has no world.
+	 * 			| if(this.getWorld() == null
+	 * 			| result == false
+	 */
+	public boolean canFall() {
+		if (this.getWorld() == null)
+			return false;
+
+		/* 
+		 * This code actually checked if there was an impassable block beneath the worm only instead of adjacent in any direction.
+		 * 
+		 * for (double x = Math.max(Math.floor(this.getPosition().getX() - this.getRadius()), 0); 
+				x <= Math.ceil(this.getPosition().getX() + this.getRadius())
+				&& x <= this.getWorld().getWidth() && x / this.getWorld().getScale() <= Integer.MAX_VALUE; 
+					x++) {
+			
+			for(double testRadius = this.getRadius(); testRadius <= 1.1*this.getRadius(); testRadius += this.getWorld().getScale()) {
+				if (!this.getWorld().isPassableTile(
+						new Position(x, this.getPosition().getY() - testRadius)))
+				return false;
+			}
+		}
+		return true;*/
+		
+		return !this.getWorld().isAdjacent(this.getPosition(), this.getRadius());
+	}
+	
+	/**
+	 * Let this gameObject fall down until it leaves the world boundaries or is !canFall() during the fall.
+	 * Only if this gameObject has a world.
+	 * 
+	 * @post The new Y-coordinate of this gameObject will be equal to or less than the current Y.
+	 * 			| new.getPosition().getY() <= this.getPosition().getY()
+	 * @post The new gameObject can not fall or isn't alive because it left worl boundaries or it hasn't got a worl.
+	 * 			| !new.canFall || !new.isAlive() || (new.getWorld() == null && this.getWorld() == null)
+	 * 
+	 */
+	public void fall() {
+		if(this.getWorld() != null) {
+			while(canFall()) { //-2, to be sure it doesn't end before but doesn't go on forever either.
+				if(this.getPosition().getY() - this.getRadius()*0.1 >= -2)
+					this.setPosition(new Position(this.getPosition().getX(), this.getPosition().getY() - this.getRadius()*0.1)); // fall with a little bit 
+				else
+					break; //TODO can be shortened down by including a condition in the while(..) liesWithinBoundaries?? + isAlive to liesWithinBoundaries?
+			}
+		}
+	}
+	
 
 }

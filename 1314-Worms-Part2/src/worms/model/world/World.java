@@ -13,6 +13,7 @@ import worms.model.world.entity.Projectile;
 import worms.model.world.entity.GameObject;
 import worms.model.world.entity.Worm;
 import worms.util.Position;
+import worms.util.Util;
 
 public class World {
 
@@ -29,7 +30,7 @@ public class World {
 					"The dimension provided isn't a valid dimension for a World");
 		if(random == null)
 			throw new IllegalArgumentException("The random parameter was a null reference, which isn't allowed.");
-		
+
 		this.width = width;
 		this.height = height;
 
@@ -60,7 +61,7 @@ public class World {
 
 		return true;
 	}
-	
+
 	public Random getRandom() {
 		return this.random;
 	}
@@ -134,7 +135,7 @@ public class World {
 	 * 			| this.getState()!=WorldState.INITIALISATION
 	 */
 	public void add(Team team) throws IllegalArgumentException,
-			IllegalStateException {
+	IllegalStateException {
 		if (team == null)
 			throw new IllegalArgumentException(
 					"Can't add a team with a null reference to this world.");
@@ -197,11 +198,11 @@ public class World {
 	public boolean liesWithinBoundaries(GameObject gameObject) {
 		if (!((gameObject.getPosition().getX() - gameObject.getRadius() >= 0) && gameObject
 				.getPosition().getX() + gameObject.getRadius() <= this
-					.getWidth()))
+				.getWidth()))
 			return false;
 		if (!((gameObject.getPosition().getY() - gameObject.getRadius() >= 0) && gameObject
 				.getPosition().getY() + gameObject.getRadius() <= this
-					.getHeight()))
+				.getHeight()))
 			return false;
 		return true;
 	}
@@ -272,6 +273,8 @@ public class World {
 			setActiveWorm(getNextWorm());
 			cleanDeadObjects(); // Important we do this after.
 			this.getActiveWorm().giveTurnPoints();
+		} else {
+			System.out.println("Living Projectile wasn't null but tried nextTurn"); //TODO: delete debug after testing.
 		}
 	}
 
@@ -285,7 +288,6 @@ public class World {
 	public void startGame() {
 		this.state = WorldState.PLAYING;
 		this.nextTurn();
-
 	}
 
 	/**
@@ -327,6 +329,7 @@ public class World {
 			boolean firstWormFound = false;
 			Team firstTeam = null;
 
+			//TODO: Re-design this to use getWorms()
 			for (GameObject gameObject : this.getGameObjects()) {
 				if (gameObject instanceof Worm && ((Worm) gameObject).isAlive()
 						&& !firstWormFound) {
@@ -356,6 +359,8 @@ public class World {
 	 * If there is only one living worm left, returns null.
 	 */
 	public Worm getNextWorm() {
+		//REMARK! Do not use getObjectOfType/getWorms/.. this would clean our previous worm if he was dead.
+		
 		if (this.getActiveWorm() == null) {
 			for (GameObject gameObject : this.getGameObjects()) {
 				if (gameObject instanceof Worm && ((Worm) gameObject).isAlive())
@@ -423,7 +428,7 @@ public class World {
 	 * TODO: (vraag) formeel? gewoon die code kopiëren?
 	 */
 	public boolean isImpassable(Position position, double radius) {
-		for (double row = Math.max(
+		/*for (double row = Math.max(
 				Math.floor((position.getY() - radius) / this.getScale()), 0); row <= Math.ceil((position.getY() + radius) / this.getScale())
 						&& row < passableMap.length; row++) {
 
@@ -433,11 +438,45 @@ public class World {
 			for (double column = Math.max(Math.floor((position.getX() - radius) / this.getScale()), 0); 
 					column <= Math.ceil((position.getX() + radius) / this.getScale()) && column <  passableMap[0].length; 
 					column++) {
+
 				if (!passableMap[(int) row][(int) column] && Math.pow(row * this.getScale() - position.getY(), 2)
-								+ Math.pow(column * this.getScale() - position.getX(), 2) <= Math.pow(radius, 2))
+								+ Math.pow(column * this.getScale() - position.getX(), 2) <= Math.pow(radius, 2)) {
+					System.out.println()
 					return true;
+				}
 			}
 		}
+		return false;*/
+
+
+		//scale = meter per pixel => row&column = pixels
+		double startRow = (position.getY() - radius);
+		double startColumn = (position.getX() - radius);
+
+		double endRow = (position.getY() + radius);
+		double endColumn = (position.getX() + radius); //TODO: Scales shouldn't be here!!!!!!!!!!!, re-check.
+
+		for (double row = Math.max(startRow, 0); Math.floor(row) <= Math.floor(endRow) && Math.floor(row/this.getScale()) < passableMap.length; row += radius*0.1) { // TODO: Double.MAX_VALUE
+			for (double column = Math.max(startColumn, 0); Math.floor(column) <= Math.floor(endColumn) && Math.floor(column/this.getScale()) < passableMap[0].length; column += radius*0.1) {
+				if (!passableMap[(int) Math.floor(row/this.getScale())][(int) Math.floor(column/this.getScale())]) {
+
+					/*if (Math.pow(row*this.getScale() - position.getY(), 2)
+							+ Math.pow(column*this.getScale() - position.getX(), 2) < Math
+							.pow(radius, 2))
+						// inside the inner circle
+						return true;*/
+					 
+					if(Util.fuzzyLessThanOrEqualTo(Math.pow(row - position.getY(), 2)
+							+ Math.pow(column - position.getX(), 2), Math
+							.pow(radius, 2), 1E-15) && !Util.fuzzyEquals(Math.pow(row - position.getY(), 2)
+									+ Math.pow(column - position.getX(), 2), Math
+									.pow(radius, 2), 1E-16)) {
+						return true;
+					}
+				}
+			}
+		}
+
 		return false;
 	}
 
@@ -453,28 +492,24 @@ public class World {
 	 * TODO: (vraag) Formeel? gewoon die code kopiëren?
 	 */
 	public boolean isAdjacent(Position position, double radius) {
-		
+
 		if(this.isImpassable(position, radius))
 			return false;
-		
+
 		boolean adjacentFound = false;
 		//scale = meter per pixel => row&column = pixels
-		double startRow = (position.getY() - 1.1*radius)
-				/ this.getScale();
-		double startColumn = (position.getX() - 1.1*radius)
-				/ this.getScale();
+		double startRow = (position.getY() - 1.1*radius);
+		double startColumn = (position.getX() - 1.1*radius);
 
-		double endRow = (position.getY() + 1.1*radius)
-				/ this.getScale();
-		double endColumn = (position.getX() + 1.1*radius)
-				/ this.getScale();
-		
-		for (double row = Math.max(startRow, 0); Math.floor(row) <= Math.floor(endRow) && Math.floor(row) < passableMap.length; row += radius*0.1) { // TODO: Double.MAX_VALUE
+		double endRow = (position.getY() + 1.1*radius);
+		double endColumn = (position.getX() + 1.1*radius);
+
+		for (double row = Math.max(startRow, 0); Math.floor(row) <= Math.floor(endRow) && Math.floor(row/this.getScale()) < passableMap.length; row += radius*0.1) { // TODO: Double.MAX_VALUE
 			// TODO: (vraag) -- [int][int] maar we praten over double met groter
 			// bereik???
-			for (double column = Math.max(startColumn, 0); Math.floor(column) <= Math.floor(endColumn) && Math.floor(column) < passableMap[0].length; column += radius*0.1) { // TODO:
+			for (double column = Math.max(startColumn, 0); Math.floor(column) <= Math.floor(endColumn) && Math.floor(column/this.getScale()) < passableMap[0].length; column += radius*0.1) { // TODO:
 				// Double.MAX_VALUE
-				if (!passableMap[(int) Math.floor(row)][(int) Math.floor(column)]) {
+				if (!passableMap[(int) Math.floor(row/this.getScale())][(int) Math.floor(column/this.getScale())]) {
 					/*for(double i = 0; i < 1; i += 0.1) {
 						if (Math.pow(Math.floor(row*this.getScale()) - position.getY(), 2)
 								+ Math.pow(Math.floor(column*this.getScale())+i - position.getX(), 2) >= Math
@@ -486,7 +521,7 @@ public class World {
 							// Outside the inner circle and inside the outer circle
 							adjacentFound = true;
 						}
-						
+
 						if(Math.floor(row) == 3.0 && Math.floor(column) == 1.0) {
 							System.out.println("row " + (Math.floor(row*this.getScale())+i) + " & column " + (Math.floor(column*this.getScale())+i));
 							System.out.println("been here but found was " + adjacentFound);
@@ -494,24 +529,24 @@ public class World {
 							System.out.println("Second bit:" + Math.pow(Math.floor(column*this.getScale())+i - position.getX(), 2));						
 							System.out.println("Total bit = " + (Math.pow(Math.floor(row*this.getScale()) - position.getY(), 2)
 									+ Math.pow(Math.floor(column*this.getScale())+i - position.getX(), 2)));
-							
+
 							System.out.println("compared with 1.0 = " + Math.pow(radius, 2));
 							System.out.println("compared with 1.1 = " + Math.pow(1.1*radius, 2));
 						}
-						
-						
+
+
 					}*/
-					
-					if (Math.pow(row*this.getScale() - position.getY(), 2)
-							+ Math.pow(column*this.getScale() - position.getX(), 2) >= Math
-								.pow(radius, 2)
-							&& Math.pow(row*this.getScale() - position.getY(), 2)
-									+ Math.pow(column*this.getScale() - position.getX(), 2) < Math
-										.pow(1.1*radius, 2)) { 
+
+					if (Math.pow(row - position.getY(), 2)
+							+ Math.pow(column - position.getX(), 2) >= Math
+							.pow(radius, 2)
+							&& Math.pow(row - position.getY(), 2)
+							+ Math.pow(column - position.getX(), 2) < Math
+							.pow(1.1*radius, 2)) { 
 						// Outside the inner circle and inside the outer circle
 						return true;
 					}
-					
+
 					/*if(Math.floor(row) == 3.0 && Math.floor(column) == 1.0) {
 						System.out.println("row " + row + " & column " + column);
 						System.out.println("been here but found was " + adjacentFound);
@@ -519,7 +554,7 @@ public class World {
 						System.out.println("Second bit:" + Math.pow(column*this.getScale() - position.getX(), 2));						
 						System.out.println("Total bit = " + (Math.pow(row*this.getScale() - position.getY(), 2)
 								+ Math.pow(column*this.getScale() - position.getX(), 2)));
-						
+
 						System.out.println("compared with 1.0 = " + Math.pow(radius, 2));
 						System.out.println("compared with 1.1 = " + Math.pow(1.1*radius, 2));
 					}*/
@@ -547,14 +582,14 @@ public class World {
 	public boolean isPassableTile(Position position) {
 		if(Math.floor(position.getY() / this.getScale()) > passableMap.length || Math.floor(position.getX() / this.getScale()) > passableMap.length)
 			return false;
-				
+
 		if (passableMap[(int) Math.floor(position.getY() / this.getScale())][(int) Math
-				.floor(position.getX() / this.getScale())])
+		                                                                     .floor(position.getX() / this.getScale())])
 			return true;
 
 		return false;
 	}
-	
+
 	/**
 	 * TODO fill in
 	 * @param position
@@ -579,24 +614,27 @@ public class World {
 	 * 
 	 * @param radius The radius of the object.
 	 * 
-	 * @return  | Position middlePos = new Position(this.getWidth() / 2, this.getHeigth() / 2);
-	 * 			| Position pos = new Position(this.random.nextDouble() * this.getWidth(), this.random.nextDouble() * this.getHeigth());
-	 * 			| for attempt = 0 to 10 with step 1
-	 * 			| 	if(this.isAdjacent(pos, radius)
-	 * 			|		return pos
-	 * 			|	else
-	 * 			|		pos = new Position((middlePos.getX() - pos.getX())/2 + pos.getX(), (middlePos.getY() - pos.getY())/2 + pos.getY())
-	 * 			| return null
+	 * @return  | TODO: formal documentation
 	 */
-	public Position getRandomAdjacentPos(double radius) {
+	public Position getRandomImpassablePos(double radius) { //getRandomAdjacentPos(
 		Position middlePos = new Position(this.getWidth() / 2,
 				this.getHeight() / 2);
 		Position pos = new Position(this.random.nextDouble() * this.getWidth(),
 				this.random.nextDouble() * this.getHeight());
 
-		for (int attempt = 0; attempt < 10; attempt++) {
-			if (this.isAdjacent(pos, radius)) {
+		for (int attempt = 0; attempt < 5; attempt++) {
+			/*if (this.isAdjacent(pos, radius)) {
 				return pos;
+			} else {
+				pos = new Position((middlePos.getX() - pos.getX()) / 2
+						+ pos.getX(), (middlePos.getY() - pos.getY()) / 2
+						+ pos.getY());
+			}*/
+			
+			if(!this.isImpassable(pos, radius)) {
+					return pos;
+					//TODO: Verander deze functie naar ipv adjacent naar niet impassable.
+					//TODO: Tijdens opvragen van niet impassable check of adjacent, zo niet laat de worm vallen?
 			} else {
 				pos = new Position((middlePos.getX() - pos.getX()) / 2
 						+ pos.getX(), (middlePos.getY() - pos.getY()) / 2
@@ -623,11 +661,13 @@ public class World {
 	public String getWinner() {
 		if (this.getState() == WorldState.ENDED) {
 			for (GameObject gameObject : this.getGameObjects()) {
-				if (gameObject instanceof Worm && ((Worm) gameObject).isAlive())
-					if (((Worm) gameObject).getTeam() == null)
+				if (gameObject instanceof Worm && ((Worm) gameObject).isAlive()) {
+					if (((Worm) gameObject).getTeam() == null) {
 						return ((Worm) gameObject).getName();
-					else
+					} else {
 						return ((Worm) gameObject).getTeam().getName();
+					}
+				}
 			}
 		}
 		return null;

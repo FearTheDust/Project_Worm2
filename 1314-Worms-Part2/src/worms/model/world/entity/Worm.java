@@ -137,12 +137,15 @@ public class Worm extends GameObject {
 	 * @post	The current amount of action points is 0.
 	 * 			| new.getCurrentActionPoints() == 0
 	 * 
-	 * @effect The new position of this worm is calculated and set.
+	 * @effect The new position of this worm is calculated and set if the current amount of actionPoints isn't 0
+	 * 			| if(this.getCurrentActionpoints() != 0)
 	 * 			| this.setPosition(this.jumpStep(this.jumpTime()))
 	 */
 	public void jump(double timeStep) {
+		if(this.getCurrentActionPoints() != 0) {
 			this.setPosition(this.jumpStep(this.jumpTime(timeStep)));
 			this.setCurrentActionPoints(0);
+		}
 	}
 
 	/**
@@ -208,13 +211,13 @@ public class Worm extends GameObject {
 	 * TODO: Documentation formally
 	 */
 	public double jumpTime(double timeStep) {
-		double loopTime = timeStep;
+		double loopTime = 0;
 		Position calculatedPosition = this.getPosition();
 		
 		while((!this.getWorld().isAdjacent(calculatedPosition, this.getRadius()) || this.getPosition().distance(calculatedPosition) <= this.getRadius()) && 
 				!this.getWorld().isImpassable(calculatedPosition, this.getRadius())) {
-			calculatedPosition = this.jumpStep(loopTime);
 			loopTime += timeStep;
+			calculatedPosition = this.jumpStep(loopTime);
 		}
 		loopTime -= timeStep; //one step back
 		
@@ -720,8 +723,11 @@ public class Worm extends GameObject {
 		if (this.getWorld() == null)
 			return null;
 
-		double minimize = 8.0;
-		double bestAngle = 0;
+		/*double minimize = 8.0;
+		double bestAngle = 0;*/
+		
+		double bestAngle = this.getAngle() - 0.7875;
+		double bestDistance = 0; //
 		Position bestPos = this.getPosition();
 
 		for (double currentAngle = this.getAngle() - 0.7875; currentAngle <= this
@@ -731,15 +737,17 @@ public class Worm extends GameObject {
 			boolean found = false;
 
 			while (distance <= this.getRadius() && !found) {
-				double PosX = distance * Math.cos(currentAngle)
+				double posX = distance * Math.cos(currentAngle)
 						+ this.getPosition().getX();
-				double PosY = distance * Math.sin(currentAngle)
+				double posY = distance * Math.sin(currentAngle)
 						+ this.getPosition().getY();
-				Position Pos = new Position(PosX, PosY);
+				Position pos = new Position(posX, posY);
 
-				if (!this.getWorld().isImpassable(Pos, this.getRadius())) { //isAdjacent fout, Brent had gelijk, ze bedoelen dat niet zo.
-					distance += 0.1;
+				if (!this.getWorld().isImpassable(pos, this.getRadius())) { //isAdjacent fout, Brent had gelijk, ze bedoelen dat niet zo.
+					distance += 0.1*this.getRadius();
+					//System.out.println("angle not impassable" + currentAngle);
 				} else {
+					//System.out.println("Impassable for position " + pos.getX() + "," + pos.getY() + " angle " + currentAngle);
 					found = true;
 				}
 			}
@@ -748,18 +756,31 @@ public class Worm extends GameObject {
 				System.out.println("a was " + distance + " with angle " + currentAngle + " and currentAngle " + this.getAngle());
 			}*/
 
-			distance -= 0.1;
+			distance -= 0.1*this.getRadius();
 			Position newPos = new Position(distance * Math.cos(currentAngle)
 					+ this.getPosition().getX(), distance * Math.sin(currentAngle)
 					+ this.getPosition().getY());
 			
 			if (distance >= 0.1) {
-				double compare = Math.abs(this.getAngle() - currentAngle) / distance;
+				
+				if(distance > bestDistance) {
+					bestDistance = distance;
+					bestAngle = currentAngle;
+					bestPos = newPos;
+				} else if(Util.fuzzyEquals(bestDistance, distance, 1E-4)) {
+					if(Math.abs(this.getAngle() - currentAngle) < Math.abs(this.getAngle() - bestAngle)) {
+						bestDistance = distance;
+						bestAngle = currentAngle;
+						bestPos = newPos;
+					}
+				}
+				/*double compare = Math.abs(this.getAngle() - currentAngle) / distance;
+				
 				if (compare < minimize) {
 					minimize = compare;
 					bestPos = newPos;
 					bestAngle = currentAngle;
-				}
+				}*/
 			}
 		}
 		System.out.println(bestAngle);
@@ -810,7 +831,10 @@ public class Worm extends GameObject {
 		if (this.getWorld() == null)
 			return false;
 
-		/*for (double x = Math.max(Math.floor(this.getPosition().getX() - this.getRadius()), 0); 
+		/* 
+		 * This code actually checked if there was an impassable block beneath the worm only instead of adjacent in any direction.
+		 * 
+		 * for (double x = Math.max(Math.floor(this.getPosition().getX() - this.getRadius()), 0); 
 				x <= Math.ceil(this.getPosition().getX() + this.getRadius())
 				&& x <= this.getWorld().getWidth() && x / this.getWorld().getScale() <= Integer.MAX_VALUE; 
 					x++) {
@@ -820,8 +844,6 @@ public class Worm extends GameObject {
 						new Position(x, this.getPosition().getY() - testRadius)))
 				return false;
 			}
-			
-			
 		}
 		return true;*/
 		
@@ -832,21 +854,24 @@ public class Worm extends GameObject {
 	 * Let this worm fall down until it leaves the world boundaries or is adjacent to impassable terrain, at one moment when falling down,
 	 * as defined by canFall.
 	 * 
-	 * @post The new Y-coordinate of this worm will be equal to or less than the current Y.
-	 * 			| new.getPosition().getY() <= this.getPosition().getY()
-	 * @post The new worm can not fall or isn't alive because he left game boundaries.
-	 * 			| !new.canFall || !new.isAlive()
+	 * @effect Let the worm fall down.
+	 * 			| super.fall()
+	 * 
+	 * @post	The amount of hitpoints after the fall is equal to or less than the previous amount.
+	 * 			| new.getCurrentHitPoints() <= this.getCurrentHitPoints()
 	 * 
 	 */
 	public void fall() {
 		Position oldPosition = this.getPosition();
 		
-		while(canFall()) { //-1, to be sure it doesn't end before but doesn't go on forever either.
-			if(this.getPosition().getY() - this.getWorld().getScale() >= -2)
+		/*while(canFall()) { //-2, to be sure it doesn't end before but doesn't go on forever either.
+			if(this.getPosition().getY() - this.getRadius()*0.1 >= -2)
 				this.setPosition(new Position(this.getPosition().getX(), this.getPosition().getY() - this.getRadius()*0.1)); // fall with 1 pixel
 			else
-				break;
-		}
+				break; //TODO can be shortened down by including a condition in the while(..)
+		}*/
+		
+		super.fall();
 		
 		double fallenMeters = oldPosition.getY() - this.getPosition().getY();
 		int cost = (int) Math.floor(3*fallenMeters);
