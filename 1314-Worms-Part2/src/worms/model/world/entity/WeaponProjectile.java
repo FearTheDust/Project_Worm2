@@ -88,7 +88,6 @@ public class WeaponProjectile extends Projectile {
 		Position calculatedPosition = this.getPosition();
 		ArrayList<Worm> hits = new ArrayList<Worm>();
 		
-		
 		while(!((this.getWorld().isAdjacent(calculatedPosition, this.getRadius()) && this.getPosition().distance(calculatedPosition) > this.getRadius()) ||
 				this.getWorld().isImpassable(calculatedPosition, this.getRadius()) || hits.size()>1 || (hits.size()==1 && !hits.contains(this.usedWeapon.getOwner())))) {
 			calculatedPosition = this.jumpStep(loopTime);
@@ -97,6 +96,21 @@ public class WeaponProjectile extends Projectile {
 		}
 	
 		return loopTime;
+	}
+	
+	/**
+	 *TODO: Formal documentation
+	 */
+	public void jump(double jumpStep) {
+		super.jump(jumpStep);
+		
+		System.out.println("Check worms hit.");
+		ArrayList<Worm> hitList = this.getWorld().hitsWorm(this.getPosition(), this.getRadius());
+		System.out.println("Kill them");
+		for(Worm shotWorm : hitList) {
+			System.out.println("Shot " + shotWorm.getName());
+			shotWorm.inflictHitDamage(this.getUsedWeapon().getDamage());
+		}
 	}
 
 }

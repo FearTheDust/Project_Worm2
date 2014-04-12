@@ -541,6 +541,22 @@ public class Worm extends GameObject {
 		setCurrentActionPoints(currentActionPoints);
 		return currentActionPoints;
 	}
+	
+	/**
+	 * Decrease the current AP of this worm.
+	 * @param cost The cost to maximumly decrease with.
+	 * 
+	 * @post The amount of action points of the new worm is less than or equal to the old one.
+	 * 			| new.getCurrentActionPoints() <= this.getCurrentActionPoints()
+	 * @post The amount of action points of the new worm is the same as before when the cost <= 0
+	 * 			| if(cost <= 0)
+	 * 			|	new.getCurrentActionpoints() == this.getCurrentActionpoints()
+	 */
+	public void decreaseActionPointsBy(int cost) {
+		if(cost < 0)
+			cost = 0;
+		this.setCurrentActionPoints(this.getCurrentActionPoints() - cost);
+	}
 
 	/**
 	 * Returns the maximum amount of action points.
@@ -899,4 +915,21 @@ public class Worm extends GameObject {
 		super.fall();
 	}
 
+	/**
+	 * Set the position of this worm and eat food within its reach.
+	 * 
+	 * @post The new radius will be greater than or equal to the old radius.
+	 * 		| new.getRadius()>=this.getRadius()
+	 * 
+	 * @effect super.setPosition(position)
+	 */
+	public void setPosition(Position position) {
+		super.setPosition(position);
+		
+		for(Food food : this.getWorld().eatableFood(this.getPosition(), this.getRadius())) {
+			this.setRadius(1.1*this.getRadius());
+			food.setToEaten();
+		}
+	}
+	
 }

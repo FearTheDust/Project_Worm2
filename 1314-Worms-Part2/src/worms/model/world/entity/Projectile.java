@@ -1,5 +1,7 @@
 package worms.model.world.entity;
 
+import java.util.ArrayList;
+
 import worms.model.Constants;
 import worms.model.world.World;
 import worms.util.Position;
@@ -188,7 +190,9 @@ public abstract class Projectile extends GameObject {
 	 * 			| this.setPosition(this.jumpStep(this.jumpTime()))
 	 */
 	public void jump(double timeStep) {
+			System.out.println("Previous pos: " + this.getPosition().getX() + "," + this.getPosition().getY());
 			this.setPosition(this.jumpStep(this.jumpTime(timeStep)));
+			System.out.println("new pos: " + this.getPosition().getX() + "," + this.getPosition().getY());
 	}
 
 }

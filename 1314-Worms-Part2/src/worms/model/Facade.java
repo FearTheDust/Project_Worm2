@@ -352,17 +352,15 @@ public class Facade implements IFacade {
 		if(worm.getCurrentWeapon() == null)
 			throw new ModelException("The worms hasn't got a weapon equipped.");
 
+		System.out.println("Started shooting.");
 		WeaponProjectile projectile = worm.getCurrentWeapon().createProjectile(yield);
 		worm.getWorld().setLivingProjectile(projectile);
 		worm.getWorld().add(projectile);
-
+		
+		System.out.println("Projectile should go.");
 		projectile.jump(GUIConstants.JUMP_TIME_STEP);
 		
-		ArrayList<Worm> hitList = projectile.getWorld().hitsWorm(projectile.getPosition(), projectile.getRadius());
-		
-		for(Worm shotWorm : hitList) {
-			shotWorm.inflictHitDamage(projectile.getUsedWeapon().getDamage());
-		}
+		worm.getWorld().setLivingProjectile(null);
 	}
 
 	@Override

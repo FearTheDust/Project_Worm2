@@ -284,13 +284,12 @@ public class World {
 			return;
 		if (gameEnded())
 			this.state = WorldState.ENDED;
-		else if (this.getLivingProjectile() == null) {
+		else {
+			this.setLivingProjectile(null);
 			setActiveWorm(getNextWorm());
 			cleanDeadObjects(); // Important we do this after.
 			this.getActiveWorm().giveTurnPoints();
-		} else {
-			System.out.println("Living Projectile wasn't null but tried nextTurn"); //TODO: delete debug after testing.
-		}
+		} 
 	}
 
 	private Worm activeWorm;
@@ -606,15 +605,20 @@ public class World {
 	}
 
 	/**
-	 * TODO fill in
-	 * @param position
-	 * @param radius
-	 * @return
+	 * Returns a list of all worms which are hit in a certain radius on a certain position.
+	 * @param position The position to check.
+	 * @param radius The radius to check in.
+	 * @return 
+	 * 			| ArrayList<Worm> result = new ArrayList<Worm>();
+	 * 			| for each worm in this.getWorms()
+	 * 			| 	double distance = worm.getPosition().distance(position)
+	 * 			| 	if(distance < worm.getRadius() + radius)
+	 * 			|		result.add(worm)
+	 * 			| return = result
 	 */
 	public ArrayList<Worm> hitsWorm(Position position, double radius) {
-		ArrayList<Worm> worms = new ArrayList<Worm>(this.getWorms());
 		ArrayList<Worm> result = new ArrayList<Worm>();
-		for (Worm worm : worms) {
+		for (Worm worm : this.getWorms()) {
 			double distance = worm.getPosition().distance(position);
 			if (distance < worm.getRadius() + radius) {
 				result.add(worm);
@@ -623,8 +627,29 @@ public class World {
 		return result;
 	}
 	
+	/**
+	 * Returns a list of all the food within a certain radius on a certain position.
+	 * @param position The position to check.
+	 * @param radius The radius to check in.
+	 * @return
+	 * 			| ArrayList<Food> result = new ArrayList<Food>();
+	 * 			| for each food in this.getFood()
+	 * 			|	double distance = food.getPosition().distance(position)
+	 * 			|	if((distance < food.getRadius() + radius)
+	 * 			|		result.add(food)
+	 * 			| return = result
+	 */
+	public ArrayList<Food> eatableFood(Position position, double radius) {
+		ArrayList<Food> result = new ArrayList<Food>();
+		for(Food food: this.getFood()) {
+			double distance = food.getPosition().distance(position);
+			if(distance < food.getRadius() + radius) {
+				result.add(food);
+			}
+		}
+		return result;
+	}
 	
-
 	/**
 	 * Returns a random adjacent position on this world.
 	 * If none is found it will return null.

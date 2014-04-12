@@ -156,21 +156,33 @@ public abstract class Weapon {
 	 * Create a projectile for this weapon for the owner of this weapon.
 	 * The projectile will be placed right outside the radius of the owner depending on the angle of the owner.
 	 * The projectile will have a force time of Constants.FORCE_TIME, the angle of the owner, the world of the owner and a provided propulsionYield.
+	 * The owner will pay an AP cost to shoot this.
+	 * If the owner does not have enough AP to shoot, null will return.
 	 * 
 	 * @param propulsionYield The propulsionYield for this projectile.
+	 * 
+	 * @post 	The owner of this weapon will have an amount of AP less than or equal to the amount of AP before.
+	 * 			| new.getCurrentActionPoints() <= this.getCurrentActionPoints()
+	 * 
 	 * @return The projectile created.
 	 * 			| double x = this.getOwner().getPosition().getX() + this.getOwner().getRadius() * Math.cos(this.getOwner().getAngle());
 	 * 			| double y = this.getOwner().getPosition().getY() + this.getOwner().getRadius() * Math.sin(this.getOwner().getAngle());
 	 * 			| Position proPosition = new Position(x,y);
 	 * 			| WeaponProjectile projectile = new WeaponProjectile(this.getOwner().getWorld(), proPosition, 
 	 * 			|	this.getOwner().getAngle(), Constants.FORCE_TIME, propulsionYield, this);
-	 * 			| result == projectile
+	 * 			| result = projectile
+	 * @return When not enough AP are available null will be returned
+	 * 			| if(this.getOwner().getCurrentActionPoints() < this.getCost())
+	 * 			|	result = null
 	 * 
 	 * @throws IllegalStateException
 	 * 			When the owner doesn't seem to be alive.
 	 * 			| !(this.getOwner().isAlive())
 	 */
 	public WeaponProjectile createProjectile(double propulsionYield) throws IllegalStateException {
+		if(this.getOwner().getCurrentActionPoints() < this.getCost())
+			return null;
+		
 		if(!this.getOwner().isAlive())
 			throw new IllegalStateException("The owner of this weapon seems to be dead, oops.");
 		
@@ -178,6 +190,7 @@ public abstract class Weapon {
 		double y = this.getOwner().getPosition().getY() + this.getOwner().getRadius() * Math.sin(this.getOwner().getAngle());
 		Position proPosition = new Position(x,y);
 		WeaponProjectile projectile = new WeaponProjectile(this.getOwner().getWorld(), proPosition, this.getOwner().getAngle(), Constants.FORCE_TIME, propulsionYield, this);
+		this.getOwner().decreaseActionPointsBy(this.getCost());
 		
 		return projectile;
 	}
