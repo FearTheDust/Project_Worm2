@@ -514,22 +514,25 @@ public class Worm extends GameObject {
 	/**
 	 * Set the current action points.
 	 * 
-	 * @param actionPoints The new amount of action points.
-	 * 
-	 * @post	If actionPoints is greater than or equal to zero,
-	 * 			The new action point amount will be set to the minimum value, being actionPoints or getMaximumActionPoints()
-	 * 			| if(actionPoints >= 0)
-	 * 			| new.getCurrentActionPoints() == Math.min(actionPoints, this.getMaximumActionPoints)
-	 * 
-	 * @post	If the actionPoints is less than zero, zero will be set.
-	 * 			| if(actionPoints < 0)
-	 * 			| new.getCurrentActionPoints() == 0
+	 * @param actionPoints
+	 *            The new amount of action points.
+	  * @post If the actionPoints is less than or equal to zero, zero will be set and the turn will go to the next worm in the world.
+	  * 	| if(actionPoints <= 0) 
+	  * 	| 	new.getCurrentActionPoints() == 0
+	 * @post If actionPoints is greater than zero, The new amount will be set to the minimum value of actionPoints
+	 *       and getMaximumActionPoints() 
+	 *      | else
+	 *      | 	new.getCurrentActionPoints() == Math.min(actionPoints,this.getMaximumActionPoints)
 	 */
 	@Raw
 	@Model
 	private void setCurrentActionPoints(int actionPoints) {
-		this.currentActionPoints = (actionPoints < 0) ? 0 : Math.min(
-				actionPoints, getMaximumActionPoints());
+		if (actionPoints <= 0) {
+			this.currentActionPoints = 0;
+			this.getWorld().nextTurn();
+		} else
+			this.currentActionPoints = Math.min(actionPoints,
+					getMaximumActionPoints());
 	}
 
 	/**
