@@ -1,7 +1,5 @@
 package worms.model.world.entity;
 
-import java.util.ArrayList;
-
 import worms.model.Constants;
 import worms.model.world.World;
 import worms.util.Position;
@@ -93,8 +91,7 @@ public abstract class Projectile extends GameObject {
 		if(this.getWorld() == null)
 			return false;
 		
-		if(!(this.getPosition().getX() >= 0 && this.getPosition().getX() <= this.getWorld().getWidth() &&
-			this.getPosition().getY() >= 0 && this.getPosition().getY() <= this.getWorld().getHeight()))
+		if(!this.getWorld().liesWithinBoundaries(this))
 				return false;
 			
 		if(this.getWorld().getLivingProjectile() != this)
@@ -129,7 +126,7 @@ public abstract class Projectile extends GameObject {
 	 * Returns the radius of this Projectile.
 	 */
 	public double getRadius() {
-		return Math.pow((this.getMass() * 3.0) / (getDensity() * 4.0 * Math.PI),(1 / 3));
+		return Math.pow((this.getMass() * 3.0) / (getDensity() * 4.0 * Math.PI),(1.0 / 3));
 	}
 
 	/**
@@ -172,7 +169,7 @@ public abstract class Projectile extends GameObject {
 		double x = this.getPosition().getX() + (startSpeedX * time);
 		double y = this.getPosition().getY()
 				+ (startSpeedY * time - Constants.EARTH_ACCELERATION
-						* Math.pow(time, 2) / 2);
+						* Math.pow(time, 2) / 2.0);
 
 		// Return
 		return new Position(x, y);
@@ -190,9 +187,7 @@ public abstract class Projectile extends GameObject {
 	 * 			| this.setPosition(this.jumpStep(this.jumpTime()))
 	 */
 	public void jump(double timeStep) {
-			System.out.println("Previous pos: " + this.getPosition().getX() + "," + this.getPosition().getY());
 			this.setPosition(this.jumpStep(this.jumpTime(timeStep)));
-			System.out.println("new pos: " + this.getPosition().getX() + "," + this.getPosition().getY());
 	}
 
 }

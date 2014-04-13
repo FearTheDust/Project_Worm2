@@ -21,7 +21,8 @@ public class Food extends GameObject {
 	 * 
 	 * @param world The world this food is in.
 	 * @param position The position of this food.
-	 * @effect | super(position)
+	 * @effect | super(world, position)
+	 * @effect | world.add(this)
 	 * @post | new.isAlive()
 	 */
 	@Raw

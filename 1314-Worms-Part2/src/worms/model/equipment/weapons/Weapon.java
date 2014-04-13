@@ -44,7 +44,7 @@ public abstract class Weapon {
 	 * 			| !isValidProjectileMass(mass)
 	 * 			| (owner == null || !owner.isAlive())
 	 */
-	protected Weapon(Worm owner, double mass, int damage, int cost, double baseForce, double maxForce) throws IllegalArgumentException {
+	public Weapon(Worm owner, double mass, int damage, int cost, double baseForce, double maxForce) throws IllegalArgumentException {
 		if(!isValidProjectileMass(mass))
 			throw new IllegalArgumentException("The provided mass for this Weapon isn't valid.");
 		if(owner == null || !owner.isAlive())

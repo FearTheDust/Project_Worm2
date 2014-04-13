@@ -82,8 +82,9 @@ public class Team {
 	public static boolean isValidWorm(Worm worm){
 		if(worm == null)
 			return false;
-		if(!worm.isAlive())
+		if(!worm.isAlive()) {
 			return false;
+		}
 		if(worm.getTeam() != null)
 			return false;
 		return true;

@@ -19,6 +19,7 @@ public abstract class GameObject {
 	/**
 	 * Initialize a GameObject with a certain Position in a world.
 	 * 
+	 * @param world The world where this GameObject is in.
 	 * @param position The position of the GameObject.
 	 * 
 	 * @throws IllegalArgumentException
@@ -29,27 +30,9 @@ public abstract class GameObject {
 	public GameObject(World world, Position position) throws IllegalArgumentException {
 		if(world == null)
 			throw new IllegalArgumentException();
-		this.world = world;
-		this.setPosition(position);
-	}
-	
-	/**
-	 * Initialize a GameObject with a certain Position in a world.
-	 * 
-	 * @param position The position of the GameObject.
-	 * @throws IllegalArgumentException
-	 * 			When position isn't valid.
-	 * 			| !this.isValidPosition(position);
-	 * 			When the world is null.
-	 * 			| world == null
-	 */
-	@Raw
-	public GameObject(World world) throws IllegalArgumentException{
-		if(world == null)
-			throw new IllegalArgumentException();
 		
-		this.setPosition(position);
 		this.world = world;
+		this.setPosition(position);
 	}
 	
 	/**

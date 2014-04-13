@@ -24,8 +24,6 @@ public class Facade implements IFacade {
 	@Override
 	public void turn(Worm worm, double angle) {
 		angle %= 2*Math.PI; //-180 -> 180
-
-		System.out.println("Figuring out how to turn from " + worm.getAngle() + " and turning with " + angle);
 		
 		if(angle < -Math.PI) {
 			angle += 2*Math.PI;
@@ -33,7 +31,6 @@ public class Facade implements IFacade {
 			angle -= 2*Math.PI;
 		}
 		worm.turn(angle);
-		System.out.println("Should've turned. Turned to " + worm.getAngle());
 	}
 
 	@Override
@@ -134,23 +131,15 @@ public class Facade implements IFacade {
 		Worm worm;
 
 		if(position!=null) {
-			worm = createWorm(world, position.getX(), position.getY(), 0, 0.5, "Eric" + (int) position.getX() + (int) position.getY());
-			worm.fall();
 			
-			int randomNumber = world.getRandom().nextInt(2);
-			if(randomNumber == 0) {
-				int minMembers = Integer.MAX_VALUE;
-				Team smallestTeam = null;
-
-				for(Team team : world.getTeams()) {
-					if(team.getWorms().size() < minMembers) {
-						minMembers = team.getWorms().size();
-						smallestTeam = team;
-					}
-				}
-				
-				if(smallestTeam!=null)
-					smallestTeam.add(worm);
+			String[] names = {"Brent", "Vincent" , "Eric", "Jasper", "Thomas H", "Jan Tobias", "Syeda", "Andreas", "Tom", "Gijs", 
+				"Thomas V", "Koen", "Change my name", "Hendrik", "Philip", "Yolande", "Marc",  "André", "Bart",  "Arno", "FearTheDust", "Brancus", "This deserves at least 16"};
+			
+			worm = createWorm(world, position.getX(), position.getY(), 0, 0.5, names[world.getRandom().nextInt(names.length)]);
+			worm.softFall();
+			ArrayList<Team> teams = (ArrayList<Team>) world.getTeams();
+			if(teams.size()>0) {
+				teams.get(teams.size()-1).add(worm);
 			}
 		} else {
 			System.out.println("Didn't find a position");
@@ -332,9 +321,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public void jump(Worm worm, double timeStep) {
-		System.out.println("Trying to jump");
 		worm.jump(timeStep);
-		System.out.println("Jumped");
 	}
 
 	@Override
@@ -352,15 +339,12 @@ public class Facade implements IFacade {
 		if(worm.getCurrentWeapon() == null)
 			throw new ModelException("The worms hasn't got a weapon equipped.");
 
-		System.out.println("Started shooting.");
 		WeaponProjectile projectile = worm.getCurrentWeapon().createProjectile(yield);
-		worm.getWorld().setLivingProjectile(projectile);
-		worm.getWorld().add(projectile);
-		
-		System.out.println("Projectile should go.");
-		projectile.jump(GUIConstants.JUMP_TIME_STEP);
-		
-		worm.getWorld().setLivingProjectile(null);
+		if(projectile != null) {
+			worm.getWorld().setLivingProjectile(projectile);
+			worm.getWorld().add(projectile);
+			projectile.jump(GUIConstants.JUMP_TIME_STEP);
+		}
 	}
 
 	@Override

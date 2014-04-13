@@ -137,12 +137,12 @@ public class Worm extends GameObject {
 	 * @post	The current amount of action points is 0.
 	 * 			| new.getCurrentActionPoints() == 0
 	 * 
-	 * @effect The new position of this worm is calculated and set if the current amount of actionPoints isn't 0
-	 * 			| if(this.getCurrentActionpoints() != 0)
+	 * @effect The new position of this worm is calculated and set if the current amount of actionPoints is higher than 0.
+	 * 			| if(this.getCurrentActionpoints() > 0)
 	 * 			| this.setPosition(this.jumpStep(this.jumpTime()))
 	 */
 	public void jump(double timeStep) {
-		if(this.getCurrentActionPoints() != 0) {
+		if(this.getCurrentActionPoints() > 0) {
 			this.setPosition(this.jumpStep(this.jumpTime(timeStep)));
 			this.setCurrentActionPoints(0);
 		}
@@ -214,14 +214,14 @@ public class Worm extends GameObject {
 		double loopTime = 0;
 		Position calculatedPosition = this.getPosition();
 		
-		while((!this.getWorld().isAdjacent(calculatedPosition, this.getRadius()) || this.getPosition().distance(calculatedPosition) <= this.getRadius()) && 
+		while(this.getWorld().liesWithinBoundaries(calculatedPosition, this.getRadius()) && (!this.getWorld().isAdjacent(calculatedPosition, this.getRadius()) || this.getPosition().distance(calculatedPosition) <= this.getRadius()) && 
 				!this.getWorld().isImpassable(calculatedPosition, this.getRadius())) {
 			loopTime += timeStep;
 			calculatedPosition = this.jumpStep(loopTime);
 		}
 		loopTime -= timeStep; //one step back
 		
-		return loopTime;
+		return Math.max(loopTime,0);
 	}
 
 	/**
@@ -236,6 +236,7 @@ public class Worm extends GameObject {
 	public int getMoveCost(Position finalPosition) {
 		double s = Math.atan((this.getPosition().getY() - finalPosition.getY())
 				/ (this.getPosition().getX() - finalPosition.getX()));
+		
 		return (int) (Math.ceil(Math.abs(Math.cos(s))
 				+ Math.abs(4 * Math.sin(s))));
 	}
@@ -600,7 +601,16 @@ public class Worm extends GameObject {
 	}
 
 	/**
-	 * Returns whether this worm's hit points equals 0.
+	 * Returns whether the worm is alive.
+	 * @return The worm isn't alive when the current hit points equal to 0.
+	 * 			| if(this.getCurrentHitPoints() == 0)
+	 * 			| 	result == false
+	 * @return The worm isn't alive when its circle doesn't lie fully within the world boundaries
+	 * 			| if(!this.getWorld().liesWithinBoundaries(this))
+	 * 			|	result == false
+	 * @return The worm isn't in a world.
+	 * 			| if(this.getWorld() == null)
+	 * 			|	result == false
 	 */
 	public boolean isAlive() {
 		if (this.getWorld() == null)
@@ -608,10 +618,7 @@ public class Worm extends GameObject {
 		
 		//TODO: Replace this beneath with a full check? (incl radius) -> if(this.getWorld().liesWithinBoundaries(this)));
 
-		if (this.getPosition().getX() > this.getWorld().getWidth()
-				|| this.getPosition().getX() < 0
-				|| this.getPosition().getY() > this.getWorld().getHeight()
-				|| this.getPosition().getY() < 0)
+		if(!this.getWorld().liesWithinBoundaries(this))
 			return false;
 
 		if (this.getCurrentHitPoints() == 0)
@@ -750,9 +757,6 @@ public class Worm extends GameObject {
 	public Position getMovePosition() {
 		if (this.getWorld() == null)
 			return null;
-
-		/*double minimize = 8.0;
-		double bestAngle = 0;*/
 		
 		double bestAngle = this.getAngle() - 0.7875;
 		double bestDistance = 0; //
@@ -802,16 +806,8 @@ public class Worm extends GameObject {
 						bestPos = newPos;
 					}
 				}
-				/*double compare = Math.abs(this.getAngle() - currentAngle) / distance;
-				
-				if (compare < minimize) {
-					minimize = compare;
-					bestPos = newPos;
-					bestAngle = currentAngle;
-				}*/
 			}
 		}
-		System.out.println(bestAngle);
 		return bestPos;
 	}
 
@@ -902,7 +898,7 @@ public class Worm extends GameObject {
 		super.fall();
 		
 		double fallenMeters = oldPosition.getY() - this.getPosition().getY();
-		int cost = (int) Math.floor(3*fallenMeters);
+		int cost = (int) (3*Math.floor(fallenMeters));
 		this.setCurrentHitPoints(this.getCurrentHitPoints() - cost);
 	}
 	
