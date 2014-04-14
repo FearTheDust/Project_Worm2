@@ -1,11 +1,13 @@
 package worms.model.equipment.weapons;
 
+import be.kuleuven.cs.som.annotate.Basic;
+import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Raw;
 import worms.model.world.entity.Worm;
 
 /**
  * A Rifle is a Weapon with a projectile mass of RIFLE_MASS kg, a cost of RIFLE_SHOOTCOST, a base damage of RIFLE_BASEDAMAGE
- * and a base/max force of RIFLE_BASEFORCE/RIFLE_MAXFORCE N.
+ * and a base/max force of RIFLE_BASEFORCE/RIFLE_MAXFORCE N and an owner.
  * 
  * @author Derkinderen Vincent
  * @author Coosemans Brent
@@ -49,7 +51,7 @@ public class Rifle extends Weapon {
 		super(owner, RIFLE_PROJECTILE_MASS, RIFLE_BASEDAMAGE, RIFLE_SHOOTCOST, RIFLE_BASEFORCE, RIFLE_MAXFORCE);
 	}
 	
-	@Override
+	@Override @Basic @Immutable
 	public String getName() {
 		return "Rifle";
 	}

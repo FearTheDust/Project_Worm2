@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import be.kuleuven.cs.som.annotate.*;
+import worms.gui.GUIConstants;
 import worms.model.*;
 import worms.model.equipment.weapons.*;
 import worms.model.world.World;
@@ -770,7 +771,7 @@ public class Worm extends GameObject {
 		if (this.getWorld() == null)
 			return null;
 		
-		double bestAngle = this.getAngle() - 0.7875;
+		double bestAngle = this.getAngle();
 		double bestDistance = 0; //
 		Position bestPos = this.getPosition();
 
@@ -795,10 +796,6 @@ public class Worm extends GameObject {
 					found = true;
 				}
 			}
-			
-			/*if(Util.fuzzyEquals(currentAngle, this.getAngle(), 1E-2)) {
-				System.out.println("a was " + distance + " with angle " + currentAngle + " and currentAngle " + this.getAngle());
-			}*/
 
 			distance -= 0.1*this.getRadius();
 			Position newPos = new Position(distance * Math.cos(currentAngle)
@@ -806,7 +803,6 @@ public class Worm extends GameObject {
 					+ this.getPosition().getY());
 			
 			if (distance >= 0.1) {
-				
 				if(distance > bestDistance) {
 					bestDistance = distance;
 					bestAngle = currentAngle;
@@ -938,6 +934,31 @@ public class Worm extends GameObject {
 			this.setRadius(1.1*this.getRadius());
 			food.setToEaten();
 		}
+	}
+	
+	/**
+	 * Shoots a projectile, creates and lets it jump.
+	 * 
+	 * @param yield The propulsionYield with which we shoot.
+	 * 
+	 * TODO add @effect/post/..
+	 * 
+	 * @throws IllegalStateException
+	 * 			When the current weapon of this worm is a null reference.
+	 * 			| this.getCurrentWeapon() == null
+	 */
+	public void shoot(int yield) throws IllegalStateException {
+		if(this.getCurrentWeapon() == null)
+			throw new IllegalStateException("The worms hasn't got a weapon equipped.");
+
+		WeaponProjectile projectile = this.getCurrentWeapon().createProjectile(yield);
+		if(projectile != null) {
+			this.getWorld().setLivingProjectile(projectile);
+			this.getWorld().add(projectile);
+			projectile.jump(GUIConstants.JUMP_TIME_STEP);
+		}/* else {
+			throw new IllegalStateException("Not enough action points to shoot.");
+		}*/
 	}
 	
 }

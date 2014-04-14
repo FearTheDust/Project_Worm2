@@ -336,14 +336,10 @@ public class Facade implements IFacade {
 
 	@Override
 	public void shoot(Worm worm, int yield) {
-		if(worm.getCurrentWeapon() == null)
-			throw new ModelException("The worms hasn't got a weapon equipped.");
-
-		WeaponProjectile projectile = worm.getCurrentWeapon().createProjectile(yield);
-		if(projectile != null) {
-			worm.getWorld().setLivingProjectile(projectile);
-			worm.getWorld().add(projectile);
-			projectile.jump(GUIConstants.JUMP_TIME_STEP);
+		try {
+			worm.shoot(yield);
+		} catch(IllegalStateException ex) {
+			throw new ModelException(ex.getMessage());
 		}
 	}
 

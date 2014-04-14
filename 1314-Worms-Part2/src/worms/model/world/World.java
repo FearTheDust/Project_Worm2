@@ -759,19 +759,34 @@ public class World {
 	}
 
 	/**
-	 * Delete objects that aren't alive anymore in this world.
+	 * Delete objects that aren't alive anymore in this world or left our game Boundaries
 	 * TODO: Add formal documentation
 	 */
+	@Model
 	private void cleanDeadObjects() {
 		for (GameObject obj : this.getGameObjects()) {
 			if (obj instanceof Projectile && obj != this.getLivingProjectile()) {
 				this.gameObjList.remove(obj);
-			} else if (!obj.isAlive()) {
+			} else if (!obj.isAlive() || !this.liesWithinBoundaries(obj)) {
 				this.gameObjList.remove(obj);
 				if(obj == this.getLivingProjectile())
 					this.setLivingProjectile(null);
 			}
 		}
+	}
+	
+	/**
+	 * TODO: Doc
+	 * @param gameObject
+	 */
+	public void remove(GameObject gameObject) throws IllegalArgumentException {
+		if(gameObject == null)
+			throw new IllegalArgumentException("The gameObject to remove musn't be a null reference");
+		
+		if(!this.gameObjList.contains(gameObject))
+			throw new IllegalArgumentException("The GameObject wasn't in this world's List.");
+		
+		this.gameObjList.remove(gameObject);
 	}
 
 }

@@ -197,7 +197,7 @@ public class WorldTest {
 		}, random);
 		Worm worm = new Worm(world, new Position(0.5,0.5), 0, 0.5, "Test");
 		Bazooka bazooka = new Bazooka(worm);
-		WeaponProjectile weaponProjectile = new WeaponProjectile(world, new Position(0.5,0.5), 0, 0.5, 100, bazooka);
+		WeaponProjectile weaponProjectile = new WeaponProjectile(new Position(0.5,0.5), 0, 0.5, 100, bazooka);
 		world.add(weaponProjectile);
 	}
 	

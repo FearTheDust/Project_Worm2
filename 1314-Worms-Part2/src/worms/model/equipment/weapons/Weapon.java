@@ -21,7 +21,7 @@ import be.kuleuven.cs.som.annotate.Raw;
  * @invar	The owner of this Weapon is never null.
  * 			| this.getOwner() != null
  *
- * REMARK, if AMMO has to be added, use an object.
+ * REMARK, if AMMO has to be added, use an object, might be easier.
  */
 public abstract class Weapon {
 	
@@ -35,13 +35,19 @@ public abstract class Weapon {
 	 * @param baseForce The base force used to shoot projectiles.
 	 * @param maxForce The max force used to shoot projectiles.
 	 * 
-	 * @post | new.getOwner() == owner
-	 * @post | new.getProjectileMass() == mass
-	 * @post | new.getForce(0) == baseForce
-	 * @post | new.getForce(100) == maxForce
+	 * @post The owner of the new Weapon is owner.
+	 * 			| new.getOwner() == owner
+	 * @post The ProjectileMass of the new Weapon is mass.
+	 * 			| new.getProjectileMass() == mass
+	 * @post The force with propulsionYield == 0 is equal to baseForce.
+	 * 			| new.getForce(0) == baseForce
+	 * @post The force with propulsionYield == 100 is equal to maxForce.
+	 * 			| new.getForce(100) == maxForce
 	 * 
 	 * @throws IllegalArgumentException 
+	 * 			When mass isn't a valid ProjectileMass.
 	 * 			| !isValidProjectileMass(mass) ||
+	 * 			When the owner is a null reference or isn't alive.
 	 * 			| (owner == null || !owner.isAlive())
 	 */
 	@Raw
@@ -86,8 +92,8 @@ public abstract class Weapon {
 	/**
 	 * Check if the provided mass is a valid mass for this Weapon.
 	 * @return	False if the mass is less than zero.
-	 * 			| if(mass < 0)
-	 * 			| then result == false
+	 * 			| if(mass < 0) then 
+	 * 			|	result == false
 	 */
 	public static boolean isValidProjectileMass(double mass) {
 		if(mass < 0)
@@ -97,7 +103,7 @@ public abstract class Weapon {
 	}
 	
 	/**
-	 * Returns the mass of this weapon.
+	 * Returns the mass of this weapon's projectile.
 	 */
 	@Basic @Immutable
 	public double getProjectileMass() {
@@ -152,6 +158,7 @@ public abstract class Weapon {
 	/**
 	 * Returns the name of this weapon.
 	 */
+	@Basic
 	public abstract String getName();
 	
 	/**
@@ -166,7 +173,7 @@ public abstract class Weapon {
 	 * @post 	The owner of this weapon will have an amount of AP less than or equal to the amount of AP before.
 	 * 			| new.getCurrentActionPoints() <= this.getCurrentActionPoints()
 	 * 
-	 * @return The projectile created.
+	 * @return/@effect The projectile created.
 	 * 			| double x = this.getOwner().getPosition().getX() + this.getOwner().getRadius() * Math.cos(this.getOwner().getAngle());
 	 * 			| double y = this.getOwner().getPosition().getY() + this.getOwner().getRadius() * Math.sin(this.getOwner().getAngle());
 	 * 			| Position proPosition = new Position(x,y);
@@ -191,7 +198,7 @@ public abstract class Weapon {
 		double x = this.getOwner().getPosition().getX() + this.getOwner().getRadius() * Math.cos(this.getOwner().getAngle());
 		double y = this.getOwner().getPosition().getY() + this.getOwner().getRadius() * Math.sin(this.getOwner().getAngle());
 		Position proPosition = new Position(x,y);
-		WeaponProjectile projectile = new WeaponProjectile(this.getOwner().getWorld(), proPosition, this.getOwner().getAngle(), Constants.FORCE_TIME, propulsionYield, this);
+		WeaponProjectile projectile = new WeaponProjectile(proPosition, this.getOwner().getAngle(), Constants.FORCE_TIME, propulsionYield, this);
 		this.getOwner().decreaseActionPointsBy(this.getCost());
 		
 		return projectile;

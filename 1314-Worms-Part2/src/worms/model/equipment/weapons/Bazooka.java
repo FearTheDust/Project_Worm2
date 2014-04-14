@@ -1,11 +1,13 @@
 package worms.model.equipment.weapons;
 
+import be.kuleuven.cs.som.annotate.Basic;
+import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Raw;
 import worms.model.world.entity.Worm;
 
 /**
  * A Rifle is a Weapon with a projectile mass of BAZOOKA_PROJECTILE_MASS kg, a cost of BAZOOKA_SHOOTCOST, a base damage of BAZOOKA_BASEDAMAGE 
- * and a base/max force of BAZOOKA_BASEFORCE/BAZOOKA_MAXFORCE N.
+ * and a base/max force of BAZOOKA_BASEFORCE/BAZOOKA_MAXFORCE N and an owner.
  * 
  * @author Derkinderen Vincent
  * @author Coosemans Brent
@@ -50,7 +52,7 @@ public class Bazooka extends Weapon {
 		super(owner, BAZOOKA_PROJECTILE_MASS, BAZOOKA_BASEDAMAGE, BAZOOKA_SHOOTCOST, BAZOOKA_BASEFORCE, BAZOOKA_MAXFORCE);
 	}
 	
-	@Override
+	@Override @Basic @Immutable
 	public String getName() {
 		return "Bazooka";
 	}

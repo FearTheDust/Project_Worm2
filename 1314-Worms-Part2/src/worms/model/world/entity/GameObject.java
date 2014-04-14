@@ -76,13 +76,9 @@ public abstract class GameObject {
 	 * 			| if(!(world.getHeight() >= position.getY() && position.getY() >= 0 && world.getWidth >= position.getX() && position.getX() >= 0))
 	 * 			| then result == false
 	 */
-	public boolean isValidPosition(Position position) { //TODO (vraag) static? Maar static overerft toch niet?
+	public boolean isValidPosition(Position position) {
 		if(position == null)
 			return false;
-		/*if(!(this.getWorld().getHeight() >= position.getY() && position.getY() >= 0))
-			return false;
-		if(!(this.getWorld().getWidth() >= position.getX() && position.getX() >= 0))
-			return false;*/
 			
 		return true;
 	}
@@ -98,7 +94,7 @@ public abstract class GameObject {
 		return world;
 	}
 	
-	protected World world;
+	private World world;
 
 	
 	/**
@@ -112,7 +108,7 @@ public abstract class GameObject {
 	public abstract boolean isAlive();
 	
 	/**
-	 * The radius of the GameObject
+	 * Returns the radius of the GameObject
 	 */
 	public abstract double getRadius();
 	
