@@ -249,6 +249,17 @@ public class Worm extends GameObject {
 	public double getAngle() {
 		return angle;
 	}
+	
+	/**
+	 * Returns whether or not this worm can turn with the provided angle.
+	 * @param angle The angle to check for.
+	 * 
+	 * @return	Whether the worm has more or an equal amount of AP than the cost to turn with that angle.
+	 * 			| result == Worm.getTurnCost(angle) <= this.getCurrentActionPoints();
+	 */
+	public boolean canTurn(double angle) {
+		return Worm.getTurnCost(angle) <= this.getCurrentActionPoints();
+	}
 
 	/**
 	 * Turn this worm with a given angle.
@@ -259,7 +270,7 @@ public class Worm extends GameObject {
 	 * 			| isValidAngle(Math.abs(2*angle)) || Util.fuzzyEquals(Math.abs(angle), Math.PI)
 	 * 		
 	 * @pre		The cost to turn should be less than or equal to the amount of action points we have.
-	 * 			| this.getCurrentActionPoints() >= getTurnCost(angle)
+	 * 			| canTurn(angle)
 	 * 
 	 * @effect	This worm's new action points is set to the old amount of action points minus the cost to turn.
 	 * 			| this.setCurrentActionPoints(this.getCurrentActionPoints() - getTurnCost(angle))
@@ -270,7 +281,7 @@ public class Worm extends GameObject {
 	public void turn(double angle) {
 		assert isValidAngle(Math.abs(2 * angle))
 				|| Util.fuzzyEquals(Math.abs(angle), Math.PI);
-		assert this.getCurrentActionPoints() >= getTurnCost(angle);
+		assert canTurn(angle);
 
 		this.setAngle(Util.modulo(this.getAngle() + angle + 2 * Math.PI,
 				2 * Math.PI));
@@ -829,21 +840,30 @@ public class Worm extends GameObject {
 	 * 			| this.setPosition(this.getMovePosition())
 	 * 
 	 * @throws IllegalArgumentException
-	 * 			When the cost to jump is greater than the current amount of AP.
-	 * 			| getMoveCost(this.getMovePosition()) > getCurrentActionPoints()
+	 * 			When this worm can not move to the calculated position.
+	 * 			| canMove(movePosition)
 	 */
 	public void move() throws IllegalArgumentException {
 		if (this.getWorld() == null)
 			return;
 
 		Position movePosition = this.getMovePosition();
-		if (getMoveCost(movePosition) > getCurrentActionPoints())
-			throw new IllegalArgumentException(
-					"You don't have enough Action Points");
+		if (!canMove(movePosition))
+			throw new IllegalArgumentException("You don't have enough Action Points");
 
 		this.setCurrentActionPoints(this.getCurrentActionPoints()
 				- this.getMoveCost(movePosition));
 		this.setPosition(movePosition);
+	}
+	
+	/**
+	 * Returns whether this worm can move to finalPosition.
+	 * @param finalPosition The position to check if we can reach.
+	 * @return Whether this worm is alive and whether he has enough AP to perform the move.
+	 * 			| result == this.isAlive() && this.getMoveCost(this.getMovePosition()) <= this.getCurrentActionPoints();
+	 */
+	public boolean canMove(Position finalPosition) {
+		return this.isAlive() && this.getMoveCost(this.getMovePosition()) <= this.getCurrentActionPoints();
 	}
 
 	/**

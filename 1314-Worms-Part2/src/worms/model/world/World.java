@@ -15,10 +15,11 @@ import worms.util.Util;
 import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Model;
+import be.kuleuven.cs.som.annotate.Raw;
 
 /**
- * A two dimensional world with a certain height and width.
- * The world may or may not contain any teams and GameObjects.
+ * A two dimensional world with a certain height and width. The world may or may not contain any teams and GameObjects.
+ * All GameObjects in this world will be found in this.getGameObjects(). Any GameObject not in that list will not count as in this world.
  * 
  * REMARKS/RULES:
  * When a GameObject has to be added to the world, first set the world of the GameObject to this 
@@ -40,10 +41,34 @@ public class World {
 	 */
 	public static final int MAX_TEAM_AMOUNT = 10;
 
-	//TODO: Documentation
+	/**
+	 * Initialize a world with a certain width & height, a certain map (boolean[][]) and a certain instance of Random.
+	 * 
+	 * @param width The width of this world.
+	 * @param height The height of this world.
+	 * @param passableMap The Terrain of this world.
+	 * @param random The Random of this world to e.g create GameObjects on a random position.
+	 * 
+	 * @post	The width of this world is width.
+	 * 			| new.getWidth() == width
+	 * @post	The height of this world is height.
+	 * 			| new.getHeight() == height
+	 * @post	The Random of this world is random
+	 * 			| new.getRandom() == random
+	 * @post	The amount of GameObjects in this world is zero.
+	 * 			| new.getGameObjects().size() == 0
+	 * 
+	 * @throws IllegalArgumentException
+	 * 			When the dimension isn't valid for a world.
+	 * 			| !isValidDimension(width, height)
+	 * 			When random or passableMap is a null reference
+	 * 			| random == null || passableMap == null
+	 * 			When the 2 dimensional boolean array isn't 'rectangle shaped' aka when a row hasn't got the same length as another one.
+	 * 			| !isRectangleDimension(passableMap)
+	 */
+	@Raw
 	public World(double width, double height, boolean[][] passableMap,
-			Random random) {
-		//To make this totally secure we should check the passableMap to be a nice square.
+			Random random) throws IllegalArgumentException {
 		if (!isValidDimension(width, height))
 			throw new IllegalArgumentException(
 					"The dimension provided isn't a valid dimension for a World");
@@ -51,25 +76,57 @@ public class World {
 			throw new IllegalArgumentException("The random parameter was a null reference, which isn't allowed.");
 		if(passableMap == null)
 			throw new IllegalArgumentException("The passableMap musn't be a null reference.");
-
+		
+		if(!isRectangleDimension(passableMap))
+			throw new IllegalArgumentException("The passableMap must be a rectangle shaped dimension.");
+		
 		this.width = width;
 		this.height = height;
 
-		this.passableMap = getInvertedMap(passableMap);
+		//Cloned because we don't want anyone to modify our world while we're playing.
+		this.passableMap = getInvertedMap(Util.deepClone(passableMap));
 		this.random = random;
 
 		gameObjList = new ArrayList<GameObject>();
 		teamList = new ArrayList<Team>();
 	}
-
-	private Random random;
+	
+	/**
+	 * Check whether the lengths of the 2-Dimensional array are rectangle shaped. aka The lengths of every row should be equal.
+	 * @param matrix The 2-dimensional array to check.
+	 * @return False if the matrix provided is a null reference.
+	 * 			| if(matrix == null)
+	 * 			|	result == false
+	 * @return False if a length of a row isn't the same as another row.
+	 * 			| int width = matrix[0].length
+	 * 			| for row = 0 to (incl) matrix.length - 1 with step 1
+	 * 			|	if(width != matrix[row].length) 
+	 * 			|		result == false
+	 */
+	public static boolean isRectangleDimension(boolean[][] matrix) {
+		if(matrix == null)
+			return false;
+		
+		int width = matrix[0].length;
+		for(int row = 0; row < matrix.length; row++) {
+			if(width != matrix[row].length)
+				return false;
+		}
+		
+		return true;
+	}
 
 	/**
-	 * Invert the passableMap.
-	 * @param passableMap
-	 * @return
+	 * Invert the passableMap. This was needed as the map provided has the (0,0) in the bottom left.
+	 * This 
+	 * @param passableMap The 2-dimensional boolean array to invert.
+	 * @return	The same map but with every row switched to [passableMap.length-1-row]
+	 * 			| boolean[][] resultArr = new boolean[passableMap.length][];
+	 * 			| for each row (index rowIndex) in the passableMap
+	 * 			|	resultArr[rowIndex] = passableMap[passableMap.length-rowIndex-1]
+	 * 			| result = resultArr
 	 */
-	private boolean[][] getInvertedMap(boolean[][] passableMap) {
+	private static boolean[][] getInvertedMap(boolean[][] passableMap) {
 		boolean[][] result = new boolean[passableMap.length][];
 
 		for(int row = 0; row < result.length; row++) {
@@ -83,12 +140,15 @@ public class World {
 	 * Returns whether the width and height form a valid dimension to be a World.
 	 * @param width The width of the dimension to check.
 	 * @param height The height of the dimension to check.
-	 * @return  | if (width < 0 || height < 0)
-	 * 			| then result == false
+	 * @return  False if width or height is less than zero.
+	 * 			| if (width < 0 || height < 0)
+	 * 			| 	result == false
+	 * @return	False when width or height are greater than Double.MAX_VALUE.
 	 * 			| if (width > Double.MAX_VALUE || height > Double.MAX_VALUE)
-	 * 			| then result == false
+	 * 			| 	result == false
+	 * @return False when width or height aren't a number.
 	 * 			| if(Double.isNaN(width) || Double.isNaN(height))
-	 * 			| then result == false
+	 * 			| 	result == false
 	 */
 	public static boolean isValidDimension(double width, double height) {
 		if (width < 0 || height < 0)
@@ -103,15 +163,22 @@ public class World {
 		return true;
 	}
 
+	/**
+	 * Returns the instance of Random which we use to do our random operations with.
+	 */
+	@Basic @Immutable
 	public Random getRandom() {
 		return this.random;
 	}
+	
+	private Random random;
 
 	/**
 	 * Scale of the world (in worm-meter per map pixel)
 	 * @return The scale of the map.
 	 * 			| result == this.getHeight() / passableMap.length
 	 */
+	@Immutable
 	public double getScale() {
 		return height / passableMap.length;
 	}
@@ -139,15 +206,10 @@ public class World {
 	private final double height;
 
 	/**
-	 * The terrain map
+	 * The terrain map, a clone of the provided one.
 	 */
 	@Model
 	private final boolean[][] passableMap;
-
-	/**
-	 * A list holding all teams currently in this world.
-	 */
-	private final List<Team> teamList;
 
 	/**
 	 * Returns a copy of the list holding all teams currently in this world.
@@ -175,6 +237,7 @@ public class World {
 	 * 			| team == null ||
 	 * 			| getTeams().size() >= this.MAX_TEAM_AMOUNT ||
 	 * 			| this.getTeams().contains(team)
+	 * 
 	 * @throws IllegalStateException
 	 * 			| this.getState()!=WorldState.INITIALISATION
 	 */
@@ -194,9 +257,15 @@ public class World {
 
 		teamList.add(team);
 	}
+	
+	/**
+	 * A list holding all teams currently in this world.
+	 */
+	private final List<Team> teamList;
 
 	/**
 	 * Add a GameObject to this world.
+	 * 
 	 * @param gameObject The GameObject to add.
 	 * @post The world will contain the gameObject.
 	 * 			| new.getGameObjects().contains(gameObject)
@@ -270,11 +339,15 @@ public class World {
 	/**
 	 * Returns whether a circle with a position and radius lies within the boundaries of this world.
 	 * 
-	 * @param gameObject the object to check.
-	 * @return 	| if(!((position.getX() - radius >= 0) && position.getX() + radius <= this.getWidth()))
+	 * @param position The position to check around.
+	 * @param radius The radius to check within.
+	 * 
+	 * @return 	If the x-coordinate - radius isn't greater than or equal to 0 or the x-coordinate + radius isn't less than or equal to this world's width.
+	 * 			| if(!((position.getX() - radius >= 0) && position.getX() + radius <= this.getWidth()))
 	 *			| 	result == false;
 	 *
-	 * @return	| if(!((position.getY() - radius >= 0) && position.getY() + radius <= this.getHeight()))
+	 * @return	If the y-coordinate - radius isn't greater than or equal to 0 or the y-coordinate + radius isn't less than or equal to this world's height.
+	 * 			| if(!((position.getY() - radius >= 0) && position.getY() + radius <= this.getHeight()))
 	 *			|	result == false;
 	 *
 	 * @return 	| else
@@ -334,17 +407,16 @@ public class World {
 	 * If the game ended. Change the worldState to WorldState.ENDED
 	 * 
 	 * @post if the current state of this world isn't "playing", do nothing.
-	 * 		| if(this.getState() != WorldState.PLAYING)
-	 *		| return
-	 *
-	 * @effect if the game has ended, set the current state of this world to "ended".
-	 * 		else set active worm to the next worm if there isn't any living projectile at this moment.
-	 * 		| if(gameEnded())
-	 *		| 	new.getState() = WorldState.ENDED;
-	 *		| else
-	 *		| 	setActiveWorm(getNextWorm());
-	 *		|	cleanDeadObjects()
-	 *		| 	this.getActiveWorm().giveTurnPoints()
+	 * 			| if(this.getState() != WorldState.PLAYING)
+	 *			| return
+	 * @post If the gameEnded the new world's worldState will be ENDED.
+	 * 			| if(gameEnded())
+	 *			| 	new.getState() = WorldState.ENDED;
+	 * @effect  Else set the next worm to active, clean DeadObjects and give the new worm its turn points.
+	 * 			| else
+	 *			| 	setActiveWorm(getNextWorm());
+	 *			|	cleanDeadObjects()
+	 *			| 	this.getActiveWorm().giveTurnPoints()
 	 */
 	public void nextTurn() {
 		if (this.getState() != WorldState.PLAYING)
@@ -364,8 +436,13 @@ public class World {
 
 	/**
 	 * Start the game of this world.
-	 * @post new.getActiveWorm() == this.getNextWorm()
-	 * @post (new.getState() == WorldState.PLAYING) || (new.getState() == WorldState.ENDED && this.gameEnded())
+	 * 
+	 * @post The active worm of this world will be the next worm.
+	 * 			| new.getActiveWorm() == this.getNextWorm()
+	 * @post The new worldState will be either PLAYING or when the gameEnded will be ENDED.
+	 * 			| (new.getState() == WorldState.PLAYING) || (new.getState() == WorldState.ENDED && this.gameEnded())
+	 * @effect Starts the next Turn.
+	 * 			| this.nextTurn()
 	 */
 	public void startGame() {
 		this.state = WorldState.PLAYING;
@@ -373,28 +450,32 @@ public class World {
 	}
 
 	/**
-	 * Returns whether or not the game ended.
-	 * @return  | if(this.getState() == WorldState.INITIALISATION) //TODO: change documentation
-	 * 			| result == false
+	 * Returns whether or not the game has ended.
+	 * 
+	 * @return False if this world's state is INITIALISATION 
+	 * 			| if(this.getState() == WorldState.INITIALISATION)
+	 * 			| 	result == false
+	 * @return True if this world's state is ENDED.
 	 * 			| if(this.getState() == WordState.ENDED)
-	 * 			| result == true
+	 * 			| 	result == true
+	 * @return 
 	 * 			| if(this.getState() == WorldState.PLAYING) then
-	 * 				| if(getNextWorm() == null
-	 * 				| result == true
-	 * 				|
-	 * 				| boolean firstWormFound = false
-	 * 				| Team firstTeam == null
-	 * 				| for each GameObject gameObject in this.getGameObjects() {
-	 * 					| if(gameObject instanceof Worm && ((Worm) gameObject).isAlive() && !firstWormFound) then
-	 * 						| firstWormFound = true
-	 * 						| firstTeam = ((Worm) gameObject).getTeam()
-	 * 					| if(gameObject instanceof Worm && ((Worm) gameObject).isAlive() && firstWormFound)
-	 * 						| if(firstTeam == null)
-	 * 						| result == false
-	 * 						| if(firstTeam != ((Worm) gameObject).getTeam())
-	 * 						| result == false
-	 * 				| result == true
-	 * 			| return false;
+	 * 			| 	if(getNextWorm() == null
+	 * 			| 		result == true
+	 * 			|
+	 * 			| boolean firstWormFound = false
+	 * 			| Team firstTeam == null
+	 * 			| for each Worm worm in this.getWorms()
+	 *			|	if (worm.isAlive() && firstWormFound)
+	 *			|		if (firstTeam == null)
+	 *			|			result == false;
+	 *			|	if (firstTeam != worm.getTeam() && firstWormFound)
+	 *			|		result == false;
+	 *			|	if (worm.isAlive() && !firstWormFound) 
+	 *			|		firstWormFound = true;
+ 	 *			|		firstTeam = worm.getTeam();
+	 *			|
+	 *			| result == true
 	 */
 	public boolean gameEnded() {
 		switch (this.getState()) {
@@ -408,6 +489,7 @@ public class World {
 				return true;
 			boolean firstWormFound = false;
 			Team firstTeam = null;
+			
 			for (Worm worm : this.getWorms()) {
 				if (worm.isAlive() && firstWormFound)
 					if (firstTeam == null)
@@ -422,17 +504,38 @@ public class World {
 			return true;
 		default:
 			return false;
-
 		}
 	}
 
 	/**
 	 * Returns the next worm.
 	 * If there is only one living worm left, returns null.
-	 */
+	 * 
+	 * @return If the activeWorm is a null reference, find the first worm who is alive in this.getGameObject() and return it.
+	 * 			If none is found return null.
+	 * 			| if (this.getActiveWorm() == null) {
+	 * 			| 	for each GameObject gameObject in this.getGameObjects()
+	 *			|		if (gameObject instanceof Worm && ((Worm) gameObject).isAlive())
+	 *			|			result == (Worm) gameObject;
+	 *			|	result == null
+	 * @return If the activeWorm isn't a null reference, find the activeWorm and from there on find the next worm. (1)
+	 * 			When the activeWorm is found and no other worm is next in the List, search the list from the start again for the first worm. (2)
+	 * 			| (1)
+	 * 			| boolean previousWormFound = false;
+	 * 			| for each GameObject gameObject in this.getGameObjects()
+	 *			|	if (previousWormFound && gameObject instanceof Worm && ((Worm) gameObject).isAlive())
+	 *			|		result == (Worm) gameObject;
+	 *			|	if (!previousWormFound && gameObject == this.getActiveWorm())
+	 *			|		previousWormFound = true;
+	 *
+	 *			| (2)
+	 *			| for (GameObject gameObject : this.getGameObjects()) {
+	 *			|	if (gameObject instanceof Worm && ((Worm) gameObject).isAlive() && gameObject != this.getActiveWorm())
+	 *			|		result == (Worm) gameObject;
+	 *			|	result == null;	
+	 */	
 	public Worm getNextWorm() {
 		//REMARK! Do not use getObjectOfType/getWorms/.. this would clean our previous worm if he was dead.
-
 		if (this.getActiveWorm() == null) {
 			for (GameObject gameObject : this.getGameObjects()) {
 				if (gameObject instanceof Worm && ((Worm) gameObject).isAlive())
@@ -463,6 +566,7 @@ public class World {
 	/**
 	 * Returns the current state of this world.
 	 */
+	@Basic
 	public WorldState getState() {
 		return this.state;
 	}
@@ -471,7 +575,7 @@ public class World {
 
 	/**
 	 * Returns the Projectile currently alive in this world.
-	 * If there is non, returns null.
+	 * If there is none, returns null.
 	 */
 	@Basic
 	public Projectile getLivingProjectile() {
@@ -480,7 +584,9 @@ public class World {
 
 	/**
 	 * Set the Projectile that is alive in this world to livingProjectile.
-	 * @post | new.getLivingProjectile() == livingProjectile
+	 * 
+	 * @post The living Projectile for the new world is equal to livingProjectile.
+	 * 			| new.getLivingProjectile() == livingProjectile
 	 */
 	public void setLivingProjectile(Projectile livingProjectile) {
 		this.livingProjectile = livingProjectile;
@@ -496,8 +602,23 @@ public class World {
 	 * @param position The position of the center of the circle to check  
 	 * @param radius The radius of the circle to check
 	 * 
-	 * @return True if the given region is impassable, false otherwise.
-	 * TODO: (vraag) formeel? gewoon die code kopiëren?
+	 * @return True if an impassable tile was found within radius distance of the position, false otherwise.
+	 * 			| double step = 0.1 * radius;
+	 *			| double startRow = (position.getY() - radius);
+	 *			| double startColumn = (position.getX() - radius);
+	 *			| double endRow = (position.getY() + radius);
+	 *			| double endColumn = (position.getX() + radius);
+	 *			| for double row = Math.max(startRow, 0) as long as Math.floor(row) <= Math.floor(endRow) && Math.floor(row/this.getScale()) < passableMap.length with step step.
+	 *			|	for double column = Math.max(startColumn, 0) as long as Math.floor(column) <= Math.floor(endColumn) && Math.floor(column/this.getScale()) < passableMap[0].length with step step
+	 *			|		if (!passableMap[(int) Math.floor(row/this.getScale())][(int) Math.floor(column/this.getScale())])
+	 *			|			if(Util.fuzzyLessThanOrEqualTo(Math.pow(row - position.getY(), 2)
+	 *			|				+ Math.pow(column - position.getX(), 2), Math.pow(radius, 2), 1E-15) && 
+	 *			|				!Util.fuzzyEquals(Math.pow(row - position.getY(), 2)
+	 *			|						+ Math.pow(column - position.getX(), 2), Math.pow(radius, 2), 1E-16)) {
+	 *			|				result == true;
+	 *			|		else
+	 *			|			column = column + step*Math.floor((Math.ceil(column/this.getScale()) - column/this.getScale()) / step);
+	 *			| result == false
 	 */
 	public boolean isImpassable(Position position, double radius) {
 		double step = 0.1 * radius;
@@ -509,7 +630,7 @@ public class World {
 		double endRow = (position.getY() + radius);
 		double endColumn = (position.getX() + radius);
 
-		for (double row = Math.max(startRow, 0); Math.floor(row) <= Math.floor(endRow) && Math.floor(row/this.getScale()) < passableMap.length; row += step) { // TODO: Double.MAX_VALUE
+		for (double row = Math.max(startRow, 0); Math.floor(row) <= Math.floor(endRow) && Math.floor(row/this.getScale()) < passableMap.length; row += step) {
 			for (double column = Math.max(startColumn, 0); Math.floor(column) <= Math.floor(endColumn) && Math.floor(column/this.getScale()) < passableMap[0].length; column += step) {
 				if (!passableMap[(int) Math.floor(row/this.getScale())][(int) Math.floor(column/this.getScale())]) {
 
@@ -527,12 +648,11 @@ public class World {
 						return true;
 					}
 				} else {
-					//column = column + step*Math.floor((Math.floor((column+1)/this.getScale()) - column) / step);
+					//Skip to the next 'tile'.
 					column = column + step*Math.floor((Math.ceil(column/this.getScale()) - column/this.getScale()) / step);
 				}
 			}
 		}
-
 		return false;
 	}
 
@@ -544,12 +664,30 @@ public class World {
 	 * @param position The position of the center of the circle to check  
 	 * @param radius The radius of the circle to check
 	 * 
-	 * @return True if the given region is passable and adjacent to impassable terrain, false otherwise.
-	 * TODO: (vraag) Formeel? gewoon die code kopiëren?
+	 * @return False if the provided position is impassable for the provided radius.
+	 * 			| if(this.isImpassable(position, radius))
+	 *			|	result == false;
+	 * @return True if an impassable tile is found within radius & radius*1.1 distance around the position, false otherwise.
+	 *			| double step = 0.1 * radius;
+	 *			| double checkingWidth = 1.1*radius;
+	 *			| double startRow = (position.getY() - checkingWidth);
+	 *			| double startColumn = (position.getX() - checkingWidth);
+	 *			| double endRow = (position.getY() + checkingWidth);
+	 *			| double endColumn = (position.getX() + checkingWidth);
+	 *			|
+	 *			| for double row = Math.max(startRow, 0) as long as Math.floor(row) <= Math.floor(endRow) && Math.floor(row/this.getScale()) < passableMap.length with step step
+	 *			|	for double column = Math.max(startColumn, 0) as long as Math.floor(column) <= Math.floor(endColumn) && Math.floor(column/this.getScale()) < passableMap[0].length with step step
+	 *			|		if (!passableMap[(int) Math.floor(row/this.getScale())][(int) Math.floor(column/this.getScale())]
+	 *			|			if(Util.fuzzyGreaterThanOrEqualTo((Math.pow(row - position.getY(), 2)
+	 *			|				+ Math.pow(column - position.getX(), 2)),Math.pow(radius, 2), 1E-15)
+	 *			|				&& Util.fuzzyLessThanOrEqualTo(Math.pow(row - position.getY(), 2)
+	 *			|					+ Math.pow(column - position.getX(), 2), Math.pow(1.1*radius, 2), 1E-15)) {
+	 *			|				result == true
+	 *			| 		else
+	 *			|			column = column + step*Math.floor((Math.ceil(column/this.getScale()) - column/this.getScale()) / step);
+	 *			| result == false
 	 */
 	public boolean isAdjacent(Position position, double radius) {
-		//System.out.println(this.getScale()); //0.02604166666
-
 		if(this.isImpassable(position, radius))
 			return false;
 
@@ -564,7 +702,7 @@ public class World {
 		double endColumn = (position.getX() + checkingWidth);
 
 		for (double row = Math.max(startRow, 0); Math.floor(row) <= Math.floor(endRow) && Math.floor(row/this.getScale()) < passableMap.length; row += step) {
-			for (double column = Math.max(startColumn, 0); Math.floor(column) <= Math.floor(endColumn) && Math.floor(column/this.getScale()) < passableMap[0].length; column += step) { // TODO:
+			for (double column = Math.max(startColumn, 0); Math.floor(column) <= Math.floor(endColumn) && Math.floor(column/this.getScale()) < passableMap[0].length; column += step) {
 				if (!passableMap[(int) Math.floor(row/this.getScale())][(int) Math.floor(column/this.getScale())]) {
 					if(Util.fuzzyGreaterThanOrEqualTo((Math.pow(row - position.getY(), 2)
 							+ Math.pow(column - position.getX(), 2)),Math
@@ -576,6 +714,7 @@ public class World {
 						return true;
 					}
 				} else {
+					//skip to the next 'tile'.
 					column = column + step*Math.floor((Math.ceil(column/this.getScale()) - column/this.getScale()) / step);
 				}
 			}
@@ -584,37 +723,12 @@ public class World {
 	}
 
 	/**
-	 * Returns whether the position ((int) Math.floor(position.getY() /this.getScale()), (int) Math.floor(position.getX() / this.getScale()) is a passable 'Tile'
-	 * 
-	 * @param position The position to check.
-	 * 
-	 * @return Whether the tile is passable.
-	 * 			| if(Math.floor(position.getY() / this.getScale()) > passableMap.length || Math.floor(position.getX() / this.getScale()) > passableMap.length)
-	 *			| result == false;
-	 *
-	 * 			| if(passableMap[(int) Math.floor(position.getY() / this.getScale())][(int) Math.floor(position.getX() / this.getScale())])
-	 * 			| result == true;
-	 * 			| else
-	 * 			| result == false
-	 */
-	public boolean isPassableTile(Position position) {
-		if(Math.floor(position.getY() / this.getScale()) > passableMap.length || Math.floor(position.getX() / this.getScale()) > passableMap.length)
-			return false;
-
-		if (passableMap[(int) Math.floor(position.getY() / this.getScale())][(int) Math
-		                                                                     .floor(position.getX() / this.getScale())])
-			return true;
-
-		return false;
-	}
-
-	/**
 	 * Returns a list of all worms which are hit in a certain radius on a certain position.
 	 * @param position The position to check.
 	 * @param radius The radius to check in.
-	 * @return 
+	 * @return The list that contains all worms to who the distance to, from the position, is less than the radius + their radius.
 	 * 			| ArrayList<Worm> result = new ArrayList<Worm>();
-	 * 			| for each worm in this.getWorms()
+	 * 			| for each Worm worm in this.getWorms()
 	 * 			| 	double distance = worm.getPosition().distance(position)
 	 * 			| 	if(distance < worm.getRadius() + radius)
 	 * 			|		result.add(worm)
@@ -635,9 +749,9 @@ public class World {
 	 * Returns a list of all the food within a certain radius on a certain position.
 	 * @param position The position to check.
 	 * @param radius The radius to check in.
-	 * @return
+	 * @return The list that contains all Food to who the distance to, from the position, is less than the radius + their radius.
 	 * 			| ArrayList<Food> result = new ArrayList<Food>();
-	 * 			| for each food in this.getFood()
+	 * 			| for each Food food in this.getFood()
 	 * 			|	double distance = food.getPosition().distance(position)
 	 * 			|	if((distance < food.getRadius() + radius)
 	 * 			|		result.add(food)
@@ -660,9 +774,22 @@ public class World {
 	 * 
 	 * @param radius The radius of the object.
 	 * 
-	 * @return  | TODO: formal documentation
+	 * @return  The position found. This is done by getting a random position and if it ain't passable it tries the position 
+	 * 			which is half as far from the middle position as the current tried position.
+	 * 			After 5 attempts to the middle it will return null if no passable position was found.
+	 * 
+	 * 			| Position middlePos = new Position(this.getWidth() / 2, this.getHeight() / 2);
+	 *			| Position pos = new Position(this.random.nextDouble() * this.getWidth(), this.random.nextDouble() * this.getHeight());
+	 *			| for int attempt = 0 to attempt == 4 with step 1
+	 *			|	if(!this.isImpassable(pos, radius) && this.liesWithinBoundaries(pos, radius)) {
+	 *			|		result pos;
+	 *			|	else
+	 *			|		pos = new Position((middlePos.getX() - pos.getX()) / 2
+	 *			|			+ pos.getX(), (middlePos.getY() - pos.getY()) / 2
+	 *			|			+ pos.getY());
+	 *			| result == null
 	 */
-	public Position getRandomPassablePos(double radius) { //getRandomAdjacentPos(
+	public Position getRandomPassablePos(double radius) {
 		Position middlePos = new Position(this.getWidth() / 2,
 				this.getHeight() / 2);
 		Position pos = new Position(this.random.nextDouble() * this.getWidth(),
@@ -735,7 +862,9 @@ public class World {
 
 	/**
 	 * Returns all worms in this world.
-	 * @effect getObjectsOfType(Worm.Class) along with a cast to cast every instance of type GameObject to Worm.
+	 * @effect (Collection<Worm>) getObjectsOfType(Worm.Class) along with a cast to cast every instance of type GameObject to Worm.
+	 * 			| (Collection<Worm>) getObjectsOfType(Worm.Class)
+	 * 
 	 */
 	public Collection<Worm> getWorms() {
 		List<Worm> result = new ArrayList<Worm>();
@@ -748,7 +877,7 @@ public class World {
 	/**
 	 * Returns all Food instances in this world.
 	 * @effect getObjectsOfType(Food.Class) along with a cast to cast every instance of type GameObject to Food.
-	 * TODO add formal cast in documentation
+	 * 			| (Collection<Food>) getObjectsOfType(Food.Class)
 	 */
 	public Collection<Food> getFood() {
 		List<Food> result = new ArrayList<Food>();
@@ -759,8 +888,14 @@ public class World {
 	}
 
 	/**
-	 * Delete objects that aren't alive anymore in this world or left our game Boundaries
-	 * TODO: Add formal documentation
+	 * Delete objects that aren't alive anymore in this world or left our world Boundaries.
+	 * If the object is a Projectile different from the current livingProjectile, it is removed as well.
+	 * 
+	 * @post	Every GameObject in this world is alive.
+	 * 			| for each GameObject gameObj in new.getGameObjects()
+	 * 			|	gameObj.isAlive() && new.liesWithinBoundaries(gameObj)
+	 * 			|	if(gameObj instanceof Projectile)
+	 * 			|		new.getLivingProjectile() == gameObj
 	 */
 	@Model
 	private void cleanDeadObjects() {
@@ -776,10 +911,19 @@ public class World {
 	}
 	
 	/**
-	 * TODO: Doc
-	 * @param gameObject
+	 * Remove a gameObject from the GameObjects in this world.
+	 * 
+	 * @param gameObject The GameObject to remove from this world.
+	 * @post The GameObject will not be found in the list of GameObjects in this world.
+	 * 			| !new.getGameObjects().contains(gameObject)
+	 * 
+	 * @throws IllegalArgumentException
+	 * 			When gameObject is a null reference.
+	 * 			| gameObject == null
+	 * 			When gameObject isn't in this world as specified by getGameObjects()
+	 * 			| !this.getGameObjects().contains(gameObject)
 	 */
-	public void remove(GameObject gameObject) throws IllegalArgumentException {
+	public void remove(GameObject gameObject) throws IllegalArgumentException { //TODO: add test
 		if(gameObject == null)
 			throw new IllegalArgumentException("The gameObject to remove musn't be a null reference");
 		
