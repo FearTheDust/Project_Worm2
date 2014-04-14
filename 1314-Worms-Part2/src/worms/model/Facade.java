@@ -4,13 +4,16 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Random;
 
-import worms.gui.GUIConstants;
 import worms.model.equipment.weapons.Weapon;
 import worms.model.world.World;
-import worms.model.world.entity.*;
+import worms.model.world.entity.Food;
+import worms.model.world.entity.Projectile;
+import worms.model.world.entity.Worm;
 import worms.util.Position;
 
 /**
+ * Facade, to 'link' our classes to the classes provided.
+ * 
  * @author Coosemans Brent
  * @author Derkinderen Vincent
  */
@@ -18,7 +21,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean canTurn(Worm worm, double angle) {
-		return Worm.getTurnCost(angle) <= worm.getCurrentActionPoints();
+		return worm.canTurn(angle);
 	}
 
 	@Override
@@ -131,7 +134,6 @@ public class Facade implements IFacade {
 		Worm worm;
 
 		if(position!=null) {
-			
 			String[] names = {"Brent", "Vincent" , "Eric", "Jasper", "Thomas H", "Jan Tobias", "Syeda", "Andreas", "Tom", "Gijs", 
 				"Thomas V", "Koen", "Change my name", "Hendrik", "Philip", "Yolande", "Marc",  "André", "Bart",  "Arno", "FearTheDust", "Brancus", "This deserves at least 16"};
 			
@@ -144,8 +146,6 @@ public class Facade implements IFacade {
 		} else {
 			System.out.println("Didn't find a position");
 		}
-
-		//TODO random name list.
 	}
 
 	@Override
@@ -155,7 +155,7 @@ public class Facade implements IFacade {
 
 	@Override
 	public boolean canMove(Worm worm) {
-		return worm.isAlive() && worm.getMoveCost(worm.getMovePosition()) <= worm.getCurrentActionPoints();
+		return worm.canMove(worm.getMovePosition());
 	}
 
 	@Override
@@ -204,7 +204,6 @@ public class Facade implements IFacade {
 	@Override
 	public double[] getJumpStep(Projectile projectile, double t) {
 		Position position = projectile.jumpStep(t);
-
 		return new double[] {position.getX(), position.getY()};
 	}
 
@@ -236,11 +235,9 @@ public class Facade implements IFacade {
 	@Override
 	public String getSelectedWeapon(Worm worm) {
 		Weapon weapon = worm.getCurrentWeapon();
-
 		if(weapon == null)
 			return null;
-
-		return worm.getCurrentWeapon().getName();
+		return weapon.getName();
 	}
 
 	@Override
@@ -248,7 +245,7 @@ public class Facade implements IFacade {
 		Team team = worm.getTeam();
 
 		if(team == null) {
-			return "";
+			return null;
 		} else {
 			return team.getName();
 		}
@@ -335,7 +332,7 @@ public class Facade implements IFacade {
 	}
 
 	@Override
-	public void shoot(Worm worm, int yield) {
+	public void shoot(Worm worm, int yield) { //TODO: add test
 		try {
 			worm.shoot(yield);
 		} catch(IllegalStateException ex) {

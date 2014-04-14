@@ -95,5 +95,27 @@ public class Util {
 	public static double relativeError(double expected, double actual) {
 		return absoluteError(expected, actual) / Math.abs(expected);
 	}
+	
+	/**
+	 * Retrieve a deepclone of the provided 'matrix'.
+	 * @param matrix The 2-dimensional boolean array to clone.
+	 * 
+	 * @return The cloned 2-dimensional array.
+	 * 
+	 * @return If matrix is a null reference returns a null reference.
+	 * 			| if(matrix == null) result == null
+	 */
+	public static boolean[][] deepClone(boolean[][] matrix) {
+		if(matrix == null)
+			return null;
+			
+		boolean[][] result = new boolean[matrix.length][];
+		
+		for(int row = 0; row < matrix.length; row++) {
+			result[row] = matrix[row].clone();
+		}
+		
+		return result;
+	}
 
 }

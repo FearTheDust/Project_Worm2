@@ -219,6 +219,7 @@ public class WorldTest {
 	 * Test method for {@link worms.model.world.World#add(worms.model.world.entity.GameObject)}.
 	 * Tests adding a game object while in the playing state.
 	 */
+	@SuppressWarnings("unused")
 	@Test(expected = IllegalStateException.class)
 	public void testAddGameObject_Illegal_PlayingState() {
 		// . 
@@ -329,6 +330,7 @@ public class WorldTest {
 	 * Test method for {@link worms.model.world.World#gameEnded()}.
 	 * Tests whether the game ended when there is only one worm.
 	 */
+	@SuppressWarnings("unused")
 	@Test
 	public void testGameEnded_OneWorm() {
 		// . X .
@@ -376,6 +378,7 @@ public class WorldTest {
 	 * Test method for {@link worms.model.world.World#getNextWorm()}.
 	 * Tests whether the second worm added will be the next worm to get a turn.
 	 */
+	@SuppressWarnings("unused")
 	@Test
 	public void testGetNextWorm() {
 		// . X .
@@ -435,28 +438,6 @@ public class WorldTest {
 
 		Worm worm = facade.createWorm(world, 1.5, 1.5, 0, 0.5, "Graag 20op20");
 		assertTrue(world.isAdjacent(worm.getPosition(), worm.getRadius()));
-	}
-
-	/**
-	 * Test method for {@link worms.model.world.World#isPassableTile(worms.util.Position)}.
-	 * Test if a tile is passable when it is.
-	 * Test if a tile isn't passable when it isn't.
-	 */
-	@Test
-	public void testIsPassableTile() {
-		// . X .
-		// . . .
-		// . . ."
-		// X X X
-		World world = facade.createWorld(3.0, 4.0, new boolean[][] {
-				{ true, false, true },
-				{ true, true, true },
-				{ true, true, true },
-				{ false, false, false }
-		}, random);
-
-		assertTrue(world.isPassableTile(new Position(2,2)));
-		assertFalse(world.isPassableTile(new Position(1,0.5)));
 	}
 
 	/**
