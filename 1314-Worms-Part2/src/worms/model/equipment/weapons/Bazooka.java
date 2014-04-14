@@ -1,5 +1,6 @@
 package worms.model.equipment.weapons;
 
+import be.kuleuven.cs.som.annotate.Raw;
 import worms.model.world.entity.Worm;
 
 /**
@@ -44,6 +45,7 @@ public class Bazooka extends Weapon {
 	 * 
 	 * @effect super(owner, BAZOOKA_PROJECTILE_MASS, BAZOOKA_BASEDAMAGE, BAZOOKA_SHOOTCOST, BAZOOKA_BASEFORCE, BAZOOKA_MAXFORCE);
 	 */
+	@Raw
 	public Bazooka(Worm owner) {
 		super(owner, BAZOOKA_PROJECTILE_MASS, BAZOOKA_BASEDAMAGE, BAZOOKA_SHOOTCOST, BAZOOKA_BASEFORCE, BAZOOKA_MAXFORCE);
 	}

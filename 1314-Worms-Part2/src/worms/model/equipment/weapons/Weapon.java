@@ -41,9 +41,10 @@ public abstract class Weapon {
 	 * @post | new.getForce(100) == maxForce
 	 * 
 	 * @throws IllegalArgumentException 
-	 * 			| !isValidProjectileMass(mass)
+	 * 			| !isValidProjectileMass(mass) ||
 	 * 			| (owner == null || !owner.isAlive())
 	 */
+	@Raw
 	public Weapon(Worm owner, double mass, int damage, int cost, double baseForce, double maxForce) throws IllegalArgumentException {
 		if(!isValidProjectileMass(mass))
 			throw new IllegalArgumentException("The provided mass for this Weapon isn't valid.");
@@ -69,7 +70,7 @@ public abstract class Weapon {
 	private Worm owner;
 	
 	/**
-	 * @return The damage this weapon can inflict by default.
+	 * Returns the damage this weapon can inflict by default.
 	 */
 	@Basic @Immutable
 	public int getDamage() {
@@ -96,7 +97,7 @@ public abstract class Weapon {
 	}
 	
 	/**
-	 * @return The mass of this weapon.
+	 * Returns the mass of this weapon.
 	 */
 	@Basic @Immutable
 	public double getProjectileMass() {
@@ -109,9 +110,9 @@ public abstract class Weapon {
 	private final double mass;
 	
 	/**
-	 * @return The amount of action points it costs to shoot with this weapon.
+	 * Returns The amount of action points it costs to shoot with this weapon.
 	 */
-	@Basic @Immutable
+	@Basic
 	public int getCost() {
 		return cost;
 	}
@@ -124,7 +125,8 @@ public abstract class Weapon {
 	/**
 	 * The force which the weapon exerts on the projectile.
 	 * @param propulsionYield
-	 * @return | baseForce + (maxForce-baseForce) * propulsionYield / 100;
+	 * @return The force calculated based on the propulsionYield.
+	 * 			| baseForce + (maxForce-baseForce) * propulsionYield / 100;
 	 * 
 	 * @throws IllegalArgumentException
 	 * 			| !Projectile.isValidPropulsionYield(propulsionYield)
@@ -134,7 +136,7 @@ public abstract class Weapon {
 			throw new IllegalArgumentException();
 		}
 		
-		return baseForce + (maxForce-baseForce) * propulsionYield / 100;
+		return baseForce + (maxForce-baseForce) * propulsionYield / 100.0;
 	}
 	
 	/**
@@ -157,7 +159,7 @@ public abstract class Weapon {
 	 * The projectile will be placed right outside the radius of the owner depending on the angle of the owner.
 	 * The projectile will have a force time of Constants.FORCE_TIME, the angle of the owner, the world of the owner and a provided propulsionYield.
 	 * The owner will pay an AP cost to shoot this.
-	 * If the owner does not have enough AP to shoot, null will return.
+	 * If the owner does not have enough AP to shoot, null will return and no projectile will be created.
 	 * 
 	 * @param propulsionYield The propulsionYield for this projectile.
 	 * 
@@ -171,8 +173,8 @@ public abstract class Weapon {
 	 * 			| WeaponProjectile projectile = new WeaponProjectile(this.getOwner().getWorld(), proPosition, 
 	 * 			|	this.getOwner().getAngle(), Constants.FORCE_TIME, propulsionYield, this);
 	 * 			| result = projectile
-	 * @return When not enough AP are available null will be returned
-	 * 			| if(this.getOwner().getCurrentActionPoints() < this.getCost())
+	 * @return When not enough AP are available or the owner isn't alive, null will be returned
+	 * 			| if(!this.getOwner().isAlive() || this.getOwner().getCurrentActionPoints() < this.getCost())
 	 * 			|	result = null
 	 * 
 	 * @throws IllegalStateException

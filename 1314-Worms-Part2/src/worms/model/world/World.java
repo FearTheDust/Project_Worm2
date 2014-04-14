@@ -16,6 +16,23 @@ import be.kuleuven.cs.som.annotate.Basic;
 import be.kuleuven.cs.som.annotate.Immutable;
 import be.kuleuven.cs.som.annotate.Model;
 
+/**
+ * A two dimensional world with a certain height and width.
+ * The world may or may not contain any teams and GameObjects.
+ * 
+ * REMARKS/RULES:
+ * When a GameObject has to be added to the world, first set the world of the GameObject to this 
+ * before trying to add it to the list of GameObjects inside this world.
+ * 
+ * When an instance of a Projectile has to be added the Projectile must first be set as the Living Projectile in this world.
+ * 
+ * @author Derkinderen Vincent
+ * @author Coosemans Brent
+ * 
+ * @invar The amount of teams in a world is less than or equal to 10.
+ * 			| this.getTeamAmount() <= 10
+ *
+ */
 public class World {
 
 	/**
@@ -32,7 +49,6 @@ public class World {
 					"The dimension provided isn't a valid dimension for a World");
 		if(random == null)
 			throw new IllegalArgumentException("The random parameter was a null reference, which isn't allowed.");
-		
 		if(passableMap == null)
 			throw new IllegalArgumentException("The passableMap musn't be a null reference.");
 
@@ -135,6 +151,7 @@ public class World {
 
 	/**
 	 * Returns a copy of the list holding all teams currently in this world.
+	 * When there are no teams an empty List will be returned.
 	 */
 	public List<Team> getTeams() {
 		return new ArrayList<Team>(teamList);
@@ -150,12 +167,14 @@ public class World {
 	/**
 	 * Add a team to this world.
 	 * 
-	 * @param team The team to add
+	 * @param team The team to add.
+	 * @post The team will be added to the List of teams present in this world.
+	 * 			| new.getTeams().contains(team)
 	 * 
-	 * @post | new.getTeams().contains(team)
 	 * @throws IllegalArgumentException
 	 * 			| team == null ||
-	 * 			| getTeams().size() >= MAX_TEAM_AMOUNT
+	 * 			| getTeams().size() >= this.MAX_TEAM_AMOUNT ||
+	 * 			| this.getTeams().contains(team)
 	 * @throws IllegalStateException
 	 * 			| this.getState()!=WorldState.INITIALISATION
 	 */
@@ -170,6 +189,8 @@ public class World {
 		if (teamList.size() >= MAX_TEAM_AMOUNT)
 			throw new IllegalArgumentException(
 					"The list of teams for this world is full, can't add more teams.");
+		if(teamList.contains(team))
+			throw new IllegalArgumentException("The team was already present in this world.");
 
 		teamList.add(team);
 	}
@@ -177,36 +198,59 @@ public class World {
 	/**
 	 * Add a GameObject to this world.
 	 * @param gameObject The GameObject to add.
-	 * @post | getGameObjects().contains(gameObject)
+	 * @post The world will contain the gameObject.
+	 * 			| new.getGameObjects().contains(gameObject)
+	 * 
 	 * @throws IllegalArgumentException
+	 * 			When the gameObject is a null reference.
 	 * 			| gameObject == null ||
+	 * 
+	 * 			When the GameObject with its radius and position isn't within the world boundaries.
 	 * 			| !liesWithinBoundaries(gameObject) ||
+	 * 
+	 * 			When the gameObject isn't alive.
 	 * 			| !gameObject.isAlive() ||
+	 * 
+	 * 			When the GameObject is an instance of a Projectile and the gameObject isn't the LivingProjectile.
 	 * 			| (gameObject instanceof Projectile && gameObject != this.getLivingProjectile()) ||
-	 * 			| (this.getGameObjects().contains(gameObject))
+	 * 
+	 * 			When this world already contains the gameObject.
+	 * 			| (this.getGameObjects().contains(gameObject)) ||
+	 * 
+	 * 			When the world of the gameObject isn't this world.
+	 * 			| (gameObject.getWorld() != this)
 	 * 
 	 * @throws IllegalStateException
-	 * 			| !(gameObject instanceof Projectile) && this.getState()!=WorldState.INITIALISATION || 
+	 * 			When the GameObject isn't a Projectile and the worldState is INITIALISATION.
+	 * 			| !(gameObject instanceof Projectile) && this.getState() != WorldState.INITIALISATION || 
+	 * 
+	 * 			When the GameObject is an instance of a Projectile and the worldState isn't  PLAYING.
 	 * 			| (gameObject instanceof Projectile) && this.getState() != WorldState.PLAYING
 	 */
 	public void add(GameObject gameObject)
 			throws IllegalArgumentException, IllegalStateException {
 		if (gameObject == null)
 			throw new IllegalArgumentException("The GameObject to add to this world was a null reference.");
+		
 		if (!(gameObject instanceof Projectile)
 				&& this.getState() != WorldState.INITIALISATION)
 			throw new IllegalStateException("Only projectiles can be added after the initialisation of this world");
 		if ((gameObject instanceof Projectile)
 				&& this.getState() != WorldState.PLAYING)
 			throw new IllegalStateException("Projectiles can only be added during the PLAYING state of this world");
+		
 		if (!liesWithinBoundaries(gameObject))
 			throw new IllegalArgumentException("This object doesn't lie within the boundaries of this world.");
 		if (!gameObject.isAlive())
 			throw new IllegalArgumentException("The object to add must be alive.");
+	
 		if (gameObject instanceof Projectile && gameObject != this.getLivingProjectile())
 			throw new IllegalArgumentException("The projectile must be set as the living projectile of this world first.");
+		
 		if(gameObjList.contains(gameObject))
 			throw new IllegalArgumentException("The object is already in the world.");
+		if(gameObject.getWorld() != this)
+			throw new IllegalArgumentException("The object to be added musn't be in another world.");
 		
 		gameObjList.add(gameObject);
 	}
@@ -217,7 +261,7 @@ public class World {
 	 * @param gameObject the object to check.
 	 * 
 	 * @return 	Returns whether the object with the position and radius lies within the world boundaries.
-	 * 			| @effect this.liesWithinBoundaries(gameObject.getPosition(), gameObject.getRadius());
+	 * 			| result == this.liesWithinBoundaries(gameObject.getPosition(), gameObject.getRadius());
 	 */
 	public boolean liesWithinBoundaries(GameObject gameObject) {
 		return this.liesWithinBoundaries(gameObject.getPosition(), gameObject.getRadius());
@@ -229,9 +273,11 @@ public class World {
 	 * @param gameObject the object to check.
 	 * @return 	| if(!((position.getX() - radius >= 0) && position.getX() + radius <= this.getWidth()))
 	 *			| 	result == false;
-	 *			| if(!((position.getY() - radius >= 0) && position.getY() + radius <= this.getHeight()))
-	 *			|	return false;
-	 *			| else
+	 *
+	 * @return	| if(!((position.getY() - radius >= 0) && position.getY() + radius <= this.getHeight()))
+	 *			|	result == false;
+	 *
+	 * @return 	| else
 	 *			|	result == true;
 	 */
 	public boolean liesWithinBoundaries(Position position, double radius) {
@@ -257,6 +303,7 @@ public class World {
 	/**
 	 * Returns the current active worm on this world.
 	 */
+	@Basic
 	public Worm getActiveWorm() {
 		return activeWorm;
 	}

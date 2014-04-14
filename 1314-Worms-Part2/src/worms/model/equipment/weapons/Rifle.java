@@ -1,5 +1,6 @@
 package worms.model.equipment.weapons;
 
+import be.kuleuven.cs.som.annotate.Raw;
 import worms.model.world.entity.Worm;
 
 /**
@@ -43,6 +44,7 @@ public class Rifle extends Weapon {
 	 * 
 	 * @effect super(owner, RIFLE_PROJECTILE_MASS, RIFLE_BASEDAMAGE, RIFLE_SHOOTCOST, RIFLE_BASEFORCE, RIFLE_MAXFORCE);
 	 */
+	@Raw
 	public Rifle(Worm owner) {
 		super(owner, RIFLE_PROJECTILE_MASS, RIFLE_BASEDAMAGE, RIFLE_SHOOTCOST, RIFLE_BASEFORCE, RIFLE_MAXFORCE);
 	}
