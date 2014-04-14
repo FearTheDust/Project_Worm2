@@ -13,6 +13,8 @@ import be.kuleuven.cs.som.annotate.Raw;
  * @author Coosemans Brent
  * @author Derkinderen Vincent
  *
+ * @invar 	This team's name is at all times a valid name.
+ * 			| isValidName(this.getName())
  */
 public class Team {
 	
@@ -20,9 +22,11 @@ public class Team {
 	 * Initialize a new empty team with a certain name.
 	 * 
 	 * @param name The name for this team.
-	 * @post | new.getName() = name
+	 * 
+	 * @post The new name for this team equals name.
+	 * 		| new.getName() = name
 	 */
-	public Team(String name) {
+	public Team(String name) throws IllegalArgumentException {
 		if(!isValidName(name))
 			throw new IllegalArgumentException("This name is not a valid name for a team.");
 		this.name=name;
@@ -34,8 +38,7 @@ public class Team {
 	 * 
 	 * @param name The name to be checked.
 	 * 
-	 * @return  True if the name is longer than or equal to 2 characters, starts with an uppercase and when every character is one from the following:
-	 * 			[A-Z] || [a-z]
+	 * @return  True if the name is longer than or equal to 2 characters, starts with an uppercase and when every character is one from the following: [A-Z] || [a-z]
 	 * 			| result != ((name == null) &&
 	 * 			| (name.length() < 2) &&
 	 * 			| (!Character.isUpperCase(name.charAt(0)) &&
@@ -70,7 +73,8 @@ public class Team {
 	 * 
 	 * @param worm The worm to be checked.
 	 * 
-	 * @return 	| if(worm == null)
+	 * @return 	True if the worm isn't null, is alive and doesn't already have a team.
+	 * 			| if(worm == null)
 	 *			|	result == false;
 	 *			| if(!worm.isAlive())
 	 *			|	result == false;
@@ -82,9 +86,8 @@ public class Team {
 	public static boolean isValidWorm(Worm worm){
 		if(worm == null)
 			return false;
-		if(!worm.isAlive()) {
+		if(!worm.isAlive())
 			return false;
-		}
 		if(worm.getTeam() != null)
 			return false;
 		return true;
@@ -95,8 +98,13 @@ public class Team {
 	 * 
 	 * @param worm the worm to add.
 	 * 
-	 * @post | worm.getTeam() == new
+	 * @post The worm is a member of this team.
+	 * 		| new.isMember(worm)
+	 * @post The team of the worm will be this team.
+	 * 		| worm.getTeam() == new
+	 * 
 	 * @throws IllegalArgumentException
+	 * 			When the worm isn't a valid worm.
 	 * 			| !isValidWorm(worm)
 	 */
 	public void add(Worm worm) throws IllegalArgumentException {
@@ -109,9 +117,9 @@ public class Team {
 	/**
 	 * Returns all the living worms in this team.
 	 */
-	public List<Worm> getLivingWorms(){
+	public List<Worm> getLivingWorms() {
 		ArrayList<Worm> result = new ArrayList<Worm>();
-		for(Worm worm : teamList){
+		for(Worm worm : teamList) {
 			if(worm.isAlive())
 				result.add(worm);
 		}
