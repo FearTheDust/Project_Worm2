@@ -85,6 +85,17 @@ public abstract class GameObject {
 	
 	private Position position;
 	
+	/**
+	 * Remove the set world if needed.
+	 * @post If the world set doesn't contain this GameObject, set the world to null.
+	 * 			| if(this.getWorld() != null && !this.getWorld().getGameObjects().contains(this))
+	 * 			|	new.getWorld() == null
+	 */
+	public void removeWorld() {
+		if(this.getWorld() != null && !this.getWorld().getGameObjects().contains(this)) {
+				this.world = null;
+		}
+	}
 	
 	/**
 	 * Returns the world the worm is in.
@@ -161,6 +172,8 @@ public abstract class GameObject {
 			}
 		}
 	}
+	
+	
 	
 
 }

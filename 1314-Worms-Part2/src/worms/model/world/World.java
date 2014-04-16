@@ -923,7 +923,7 @@ public class World {
 	 * 			When gameObject isn't in this world as specified by getGameObjects()
 	 * 			| !this.getGameObjects().contains(gameObject)
 	 */
-	public void remove(GameObject gameObject) throws IllegalArgumentException { //TODO: add test
+	public void remove(GameObject gameObject) throws IllegalArgumentException {
 		if(gameObject == null)
 			throw new IllegalArgumentException("The gameObject to remove musn't be a null reference");
 		
@@ -931,6 +931,7 @@ public class World {
 			throw new IllegalArgumentException("The GameObject wasn't in this world's List.");
 		
 		this.gameObjList.remove(gameObject);
+		gameObject.removeWorld();
 	}
 
 }

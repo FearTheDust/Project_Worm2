@@ -30,7 +30,7 @@ import worms.util.*;
  */
 
 /**
- * A class representing worms with a position, a direction it's facing, a radius, a mass, an amount of action points and a name.
+ * A class representing worms with a world, a position, a direction it's facing, a radius, a mass, an amount of action points, an amount of hit points and a name.
  * 
  * @author Derkinderen Vincent - Bachelor Informatica - R0458834
  * @author Coosemans Brent - Bachelor Informatica - R0376498
@@ -58,6 +58,8 @@ import worms.util.*;
  * @invar	This worm is a member of the team it is in.
  *			| this.getTeam().isMember(this)
  */
+
+//TODO: Make sure this.getWorld() == null is handled in functions using this.getWorld()...
 public class Worm extends GameObject {
 
 	/**
@@ -92,7 +94,7 @@ public class Worm extends GameObject {
 	 * 			| this.setCurrentHitPoints(hitPoints)
 	 * 
 	 * @effect This is added to the list of GameObjects in world.
-	 * 			| world.Add(this)
+	 * 			| world.add(this)
 	 */
 	@Raw
 	public Worm(World world, Position position, double angle, double radius,
