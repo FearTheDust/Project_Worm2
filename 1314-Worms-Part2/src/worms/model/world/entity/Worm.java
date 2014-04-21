@@ -63,7 +63,6 @@ import worms.util.*;
  *			| this.getTeam().isMember(this)
  */
 
-//TODO: Make sure this.getWorld() == null is handled in functions using this.getWorld()...
 public class Worm extends GameObject {
 
 	/**
@@ -525,7 +524,7 @@ public class Worm extends GameObject {
 	 * 
 	 * @effect If actionPoints is less than or equal to zero and the currentAP is different, call this.getWorld().nextTurn().
 	 * 			| if(actionPoints <= 0)
-	 * 			|	if(this.getCurrentActionPoints() != actionPoints)
+	 * 			|	if(this.getCurrentActionPoints() != actionPoints && this.getWorld() != null)
 	 * 			|		this.getWorld().nextTurn()
 	 */
 	@Raw @Model
@@ -533,7 +532,7 @@ public class Worm extends GameObject {
 		int oldAP = this.currentActionPoints;
 		if (actionPoints <= 0) {
 			this.currentActionPoints = 0;
-			if(oldAP != actionPoints) //so this doesn't get called by this.getCurrentAP()
+			if(oldAP != actionPoints && this.getWorld() != null) //so this doesn't get called by this.getCurrentAP()
 				this.getWorld().nextTurn();
 		} else
 			this.currentActionPoints = Math.min(actionPoints, getMaximumActionPoints());
@@ -940,18 +939,32 @@ public class Worm extends GameObject {
 
 	/**
 	 * Set the position of this worm and eat food within its reach.
+	 * When this worm is outside of the world boundaries and listed as active worm for that world, execute the nextTurn()
+	 * of that world.
 	 * 
 	 * @post The new radius will be greater than or equal to the old radius.
-	 * 		| new.getRadius()>=this.getRadius()
+	 * 		| new.getRadius() >= this.getRadius()
+	 * @post All Food within the radius of this worm is eaten.
+	 * 		| if(this.getWorld() != null)
+	 * 		|	new.getWorld().eatableFood(new.getPosition(), this.getRadius()).size() == 0
+	 * @post A worm outside of the world boundaries will not be the active worm in the new world.
+	 * 		| if(this.getWorld() != null)
+	 * 		|	new.getWorld().liesWithinBoundaries(new) || new.getWorld().getActiveWorm() != new
 	 * 
 	 * @effect set the position for the worm.
 	 * 		| super.setPosition(position)
 	 */
 	public void setPosition(Position position) {
 		super.setPosition(position);
-		for(Food food : this.getWorld().eatableFood(this.getPosition(), this.getRadius())) {
-			this.setRadius(1.1*this.getRadius());
-			food.setToEaten();
+		
+		if(this.getWorld() != null) {
+			for(Food food : this.getWorld().eatableFood(this.getPosition(), this.getRadius())) {
+				this.setRadius(1.1*this.getRadius());
+				food.setToEaten();
+			}
+			
+			if(!this.getWorld().liesWithinBoundaries(this) && this.getWorld().getActiveWorm() == this)
+				this.getWorld().nextTurn();
 		}
 	}
 	
@@ -972,8 +985,11 @@ public class Worm extends GameObject {
 	 * 			| this.getCurrentWeapon() == null
 	 */
 	public void shoot(int yield) throws IllegalStateException {
+		if(this.getWorld() != null)
+			return;
+		
 		if(this.getCurrentWeapon() == null)
-			throw new IllegalStateException("The worms hasn't got a weapon equipped.");
+			throw new IllegalStateException("The worm hasn't got a weapon equipped.");
 		WeaponProjectile projectile = this.getCurrentWeapon().createProjectile(yield);
 		if(projectile != null) {
 			this.getWorld().setLivingProjectile(projectile);
