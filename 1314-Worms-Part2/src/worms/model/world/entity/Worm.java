@@ -993,6 +993,8 @@ public class Worm extends GameObject {
 		if(projectile != null) {
 			this.getWorld().setLivingProjectile(projectile);
 			this.getWorld().add(projectile);
+			//When we let the src-provided jump it doesn't seem to paint the end position although it does 
+			//end up on the same end position it isn't painted like that.
 			this.getWorld().getLivingProjectile().jump(GUIConstants.JUMP_TIME_STEP);
 		}
 	}
