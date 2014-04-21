@@ -154,7 +154,7 @@ public class WorldTest {
 		GameObject gameobject = null;
 		world.add(gameobject);
 	}
-
+	
 	/**
 	 * Test method for {@link worms.model.world.World#add(worms.model.world.entity.GameObject)}.
 	 * Test adding a game object outside of the boundaries of the world.
@@ -169,7 +169,7 @@ public class WorldTest {
 		worm.move();
 		world.add(worm);
 	}
-
+	
 	/**
 	 * Test method for {@link worms.model.world.World#add(worms.model.world.entity.GameObject)}.
 	 * Tests adding a dead game object.
@@ -184,7 +184,7 @@ public class WorldTest {
 		worm.inflictHitDamage(Integer.MAX_VALUE);
 		world.add(worm);
 	}
-
+	
 	/**
 	 * Test method for {@link worms.model.world.World#add(worms.model.world.entity.GameObject)}.
 	 * Tests adding a projectile during initialization.
@@ -200,7 +200,7 @@ public class WorldTest {
 		WeaponProjectile weaponProjectile = new WeaponProjectile(new Position(0.5,0.5), 0, 0.5, 100, bazooka);
 		world.add(weaponProjectile);
 	}
-
+	
 	/**
 	 * Test method for {@link worms.model.world.World#add(worms.model.world.entity.GameObject)}.
 	 * Tests adding a game object already added.
@@ -214,7 +214,7 @@ public class WorldTest {
 		Worm worm = new Worm(world, new Position(0.5,0.5), 0, 0.5, "Test");
 		world.add(worm);
 	}
-
+	
 	/**
 	 * Test method for {@link worms.model.world.World#add(worms.model.world.entity.GameObject)}.
 	 * Tests adding a game object while in the playing state.
@@ -232,8 +232,8 @@ public class WorldTest {
 		world.startGame();
 		world.add(worm3);
 	}
-
-
+	
+	
 
 	/**
 	 * Test method for {@link worms.model.world.World#liesWithinBoundaries(worms.model.world.entity.GameObject)}.
@@ -283,7 +283,7 @@ public class WorldTest {
 		Worm worm = facade.createWorm(world, 1.5, 1.5, 0, 0.5, "Test");
 		Worm worm2 = new Worm(world, new Position(1.5, 1.5), 0, 0.5, "Test2", 10, 10);
 		Worm worm3 = facade.createWorm(world, 1.5, 1.5, 0, 0.5, "Test3");
-
+		
 		world.nextTurn();
 		assertEquals(world.getActiveWorm(), null);
 		world.startGame();
@@ -291,7 +291,7 @@ public class WorldTest {
 		assertEquals(world.getActiveWorm(), worm2);
 		assertEquals(worm2.getCurrentHitPoints(), 20);
 		assertEquals(worm2.getMaximumActionPoints(), worm2.getCurrentActionPoints());
-
+		
 		worm.inflictHitDamage(worm.getCurrentHitPoints());
 		worm3.inflictHitDamage(worm3.getCurrentHitPoints());
 		world.nextTurn();
@@ -629,7 +629,7 @@ public class WorldTest {
 		facade.createFood(world, 2.0, 2.0);
 		assertEquals(world.getFood().size(), 2);
 	}
-
+	
 	/**
 	 * Test the removing of a gameObject from the world.
 	 */
@@ -677,7 +677,5 @@ public class WorldTest {
 		
 		world.remove(worm);
 	}
-
-
 
 }
