@@ -25,7 +25,11 @@ public class Team {
 	 * 
 	 * @post The new name for this team equals name.
 	 * 		| new.getName() = name
+	 * 
+	 * @throws IllegalArgumentException
+	 * 		| !isValidName(name)
 	 */
+	@Raw
 	public Team(String name) throws IllegalArgumentException {
 		if(!isValidName(name))
 			throw new IllegalArgumentException("This name is not a valid name for a team.");
@@ -129,9 +133,8 @@ public class Team {
 	/**
 	 * Returns a copy of the list of all the worms in this team.
 	 */
-	@SuppressWarnings("unchecked")
 	public List<Worm> getWorms(){
-		return (List<Worm>) teamList.clone();
+		return new ArrayList<Worm>(teamList);
 	}
 	
 	private ArrayList<Worm> teamList;
@@ -140,6 +143,9 @@ public class Team {
 	 * Returns whether the worm is a member of this team.
 	 * 
 	 * @param worm The worm to check.
+	 * 
+	 * @return  Whether this team contains the worm.
+	 * 			| result == this.getWorms().contains(worm)
 	 */
 	public boolean isMember(Worm worm){
 		return teamList.contains(worm);

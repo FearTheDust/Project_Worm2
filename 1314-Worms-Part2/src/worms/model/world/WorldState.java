@@ -2,9 +2,9 @@ package worms.model.world;
 
 /**
  * An enum to set the state of a world:
- * - initialisation while adding worms and food
- * - playing while there are still worms from different teams or multiple worms with no team
- * - ended when there is maximum one team or one worm with no team left
+ * - INITIALISATION while adding worms, food and teams.
+ * - PLAYING while there are still worms from different teams or multiple worms with no team
+ * - ENDED when there is one team, one worm with no team or no worm left alive in this world.
  * 
  * @author Coosemans Brent
  * @author Derkinderen Vincent

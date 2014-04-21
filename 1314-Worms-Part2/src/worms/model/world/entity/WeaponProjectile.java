@@ -123,7 +123,7 @@ public class WeaponProjectile extends Projectile {
 	}
 	
 	/**
-	 * Lets this weaponProjectile jump to a certain location.
+	 * Lets this weaponProjectile jump to a certain location and inflict damage on any worm hit.
 	 * 
 	 * @param timeStep The time step with which we calculate the time needed to reach the final position.
 	 * 

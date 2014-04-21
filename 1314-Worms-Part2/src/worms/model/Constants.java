@@ -1,5 +1,11 @@
 package worms.model;
 
+/**
+ * 
+ * @author Coosemans Brent
+ * @author Derkinderen Vincent
+ *
+ */
 public class Constants {
 	
 	/**
@@ -22,5 +28,11 @@ public class Constants {
 	 * The radius of food.
 	 */
 	public static final double FOOD_RADIUS = 0.2;
+	
+	/**
+	 * The growth of the radius when this food is eaten.
+	 * E.g newRadius = oldRadius*FOOD_RADIUS_GROWTH
+	 */
+	public static final double FOOD_RADIUS_GROWTH = 1.1;
 	
 }

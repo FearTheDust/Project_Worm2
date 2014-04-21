@@ -32,6 +32,9 @@ import be.kuleuven.cs.som.annotate.Raw;
  * 
  * @invar The amount of teams in a world is less than or equal to 10.
  * 			| this.getTeamAmount() <= 10
+ * 
+ * @invar	When there is an active worm it is either dead or its world is set to this world.
+ * 			| this.getActiveWorm() == null || !this.getActiveWorm().isAlive() || this.getActiveWorm().getWorld() == this
  *
  */
 public class World {
@@ -39,7 +42,7 @@ public class World {
 	/**
 	 * The maximum amount of teams allowed on a world.
 	 */
-	public static final int MAX_TEAM_AMOUNT = 10;
+	public static final byte MAX_TEAM_AMOUNT = 10;
 
 	/**
 	 * Initialize a world with a certain width & height, a certain map (boolean[][]) and a certain instance of Random.
@@ -118,7 +121,6 @@ public class World {
 
 	/**
 	 * Invert the passableMap. This was needed as the map provided has the (0,0) in the bottom left.
-	 * This 
 	 * @param passableMap The 2-dimensional boolean array to invert.
 	 * @return	The same map but with every row switched to [passableMap.length-1-row]
 	 * 			| boolean[][] resultArr = new boolean[passableMap.length][];
@@ -127,12 +129,13 @@ public class World {
 	 * 			| result = resultArr
 	 */
 	private static boolean[][] getInvertedMap(boolean[][] passableMap) {
+		if(passableMap == null)
+			return null;
+		
 		boolean[][] result = new boolean[passableMap.length][];
-
 		for(int row = 0; row < result.length; row++) {
 			result[row] = passableMap[passableMap.length-row-1];
 		}
-
 		return result;
 	}
 
@@ -395,9 +398,9 @@ public class World {
 	@Model
 	private void setActiveWorm(Worm worm) throws IllegalArgumentException {
 		if (worm == null)
-			throw new IllegalArgumentException();
-		if (!worm.isAlive())
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException("The worm isn't allowed to be a null reference.");
+		if (!worm.isAlive() || worm.getWorld() != this)
+			throw new IllegalArgumentException("The worm provided as active worm must be alive and in this world.");
 		this.activeWorm = worm;
 	}
 
@@ -667,6 +670,7 @@ public class World {
 	 * @return False if the provided position is impassable for the provided radius.
 	 * 			| if(this.isImpassable(position, radius))
 	 *			|	result == false;
+	 *
 	 * @return True if an impassable tile is found within radius & radius*1.1 distance around the position, false otherwise.
 	 *			| double step = 0.1 * radius;
 	 *			| double checkingWidth = 1.1*radius;
@@ -691,7 +695,6 @@ public class World {
 		if(this.isImpassable(position, radius))
 			return false;
 
-		//scale = meter per pixel => row&column = pixels
 		double step = 0.1 * radius;
 		double checkingWidth = 1.1*radius;
 		
@@ -841,7 +844,7 @@ public class World {
 	/**
 	 * Returns a collection<GameObject> of all objects in this world which are an instance of the given type gameObjType.
 	 * 
-	 * @param gameObjType The class type to check for instances.
+	 * @param gameObjType The class type to check for instances of.
 	 * @return  | List<GameObject> result;
 	 * 			| for each GameObject obj in this.getGameObjects()
 	 * 			| 	if(gameObjType.isInstance(obj))
@@ -864,7 +867,6 @@ public class World {
 	 * Returns all worms in this world.
 	 * @effect (Collection<Worm>) getObjectsOfType(Worm.Class) along with a cast to cast every instance of type GameObject to Worm.
 	 * 			| (Collection<Worm>) getObjectsOfType(Worm.Class)
-	 * 
 	 */
 	public Collection<Worm> getWorms() {
 		List<Worm> result = new ArrayList<Worm>();
@@ -895,7 +897,7 @@ public class World {
 	 * 			| for each GameObject gameObj in new.getGameObjects()
 	 * 			|	gameObj.isAlive() && new.liesWithinBoundaries(gameObj)
 	 * 			|	if(gameObj instanceof Projectile)
-	 * 			|		new.getLivingProjectile() == gameObj
+	 * 			|		this.getLivingProjectile() == gameObj
 	 */
 	@Model
 	private void cleanDeadObjects() {

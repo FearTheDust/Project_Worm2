@@ -38,6 +38,9 @@ public class Shoot extends Command {
 			if (projectile != null) {
 				totalDuration = getFacade().getJumpTime(projectile,
 						GUIConstants.JUMP_TIME_STEP);
+				//TODO: Debug
+				//System.out.println("totalDuration " + totalDuration + " calculatedX: " + projectile.jumpStep(totalDuration).getX() + " calculatedY: " + projectile.jumpStep(totalDuration).getY());
+				
 				ProjectileSprite sprite = new ProjectileSprite(getScreen(),
 						projectile);
 				sprite.setCenterLocation(
@@ -72,6 +75,9 @@ public class Shoot extends Command {
 				if (!hasJumped) {
 					hasJumped = true;
 					getFacade().jump(projectile, GUIConstants.JUMP_TIME_STEP);
+					//TODO Delete DEBUG
+					//System.out.println("final time " + getElapsedTime() + " at x:" + projectile.getPosition().getX() + " and y:" + projectile.getPosition().getY());
+					
 					finished = true;
 				}
 			} else {
@@ -80,7 +86,9 @@ public class Shoot extends Command {
 
 				double[] xy = getFacade().getJumpStep(projectile,
 						getElapsedTime());
-
+				//TODO Delete DEBUG
+				//System.out.println("update time " + getElapsedTime() + " x:" + xy[0] + " y:" + xy[1]);
+				
 				sprite.setCenterLocation(getScreen().getScreenX(xy[0]),
 						getScreen().getScreenY(xy[1]));
 			}

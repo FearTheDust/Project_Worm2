@@ -71,7 +71,12 @@ public class Position {
 		return Math.sqrt(Math.pow(this.getX() - position.getX(), 2) + Math.pow(this.getY() - position.getY(), 2));
 	}
 	
-	@Override //TODO: geen documentatie bij Override?
+	/**
+	 * If otherObject isn't an instanceof Position the 2 objects aren't equal.
+	 * If it is then the objects are the same if the X and Y coordinates are the same. 
+	 * (Within a certain offset provided by Util.fuzzyEquals(double, double)
+	 */
+	@Override
 	public boolean equals(Object otherObject) {
 		if(otherObject instanceof Position) 
 			return (Util.fuzzyEquals(this.getX(), ((Position) otherObject).getX()) &&
@@ -79,10 +84,12 @@ public class Position {
 		return false;
 	}
 	
+	/**
+	 * Hashcode provided:
+	 * Integer.parseInt(this.getX() + "" + this.getY()) % 97
+	 */
 	@Override
 	public int hashCode() {
-		//int code = Integer.parseInt(this.getX() + "" + this.getY()) % 97;
-		//return code; //TODO: Good enough? I think so :p
 		return Integer.parseInt(this.getX() + "" + this.getY()) % 97;
 	}
 	

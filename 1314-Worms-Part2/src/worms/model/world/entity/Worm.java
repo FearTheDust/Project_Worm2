@@ -211,7 +211,7 @@ public class Worm extends GameObject {
 	 * 
 	 * @param timeStep the time between two positions on the traject of the jump.
 	 * 
-	 * @return the time needed to jumpp from the worm's current position, with the worm's current angle and in the world he is located in.
+	 * @return the time needed to jump from the worm's current position, with the worm's current angle and in the world he is located in.
 	 * 			| double loopTime = 0
 	 *			| Position calculatedPosition = this.getPosition()
 	 *			| while(this.getWorld().liesWithinBoundaries(calculatedPosition, this.getRadius()) && (!this.getWorld().isAdjacent(calculatedPosition, this.getRadius()) || this.getPosition().distance(calculatedPosition) <= this.getRadius()) && 
@@ -767,7 +767,6 @@ public class Worm extends GameObject {
 
 	/**
 	 * Returns the position where the worm would be if he would move.
-	 * TODO Formalize (for loops)
 	 * 
 	 * @return check for every angle between the worm's current angle +/- 0.7875 with a step of 0.0175
 	 * 			what the maximum distance is and for all angles with equal maximum distances,
@@ -777,7 +776,7 @@ public class Worm extends GameObject {
 	 *			| double bestAngle = this.getAngle()
 	 *			| double bestDistance = 0
 	 *			| Position bestPos = this.getPosition()
-	 *			| for (double currentAngle = this.getAngle() - 0.7875; currentAngle <= this.getAngle() + 0.7875; currentAngle += 0.0175)
+	 *			| for double currentAngle = this.getAngle() - 0.7875 until currentAngle <= this.getAngle() + 0.7875 with step currentAngle += 0.0175
 	 *			|	double distance = 0.1
 	 *			|	boolean found = false
 	 *			|	while (distance <= this.getRadius() && !found)
@@ -959,7 +958,7 @@ public class Worm extends GameObject {
 		
 		if(this.getWorld() != null) {
 			for(Food food : this.getWorld().eatableFood(this.getPosition(), this.getRadius())) {
-				this.setRadius(1.1*this.getRadius());
+				this.setRadius(Constants.FOOD_RADIUS_GROWTH*this.getRadius());
 				food.setToEaten();
 			}
 			
@@ -985,7 +984,7 @@ public class Worm extends GameObject {
 	 * 			| this.getCurrentWeapon() == null
 	 */
 	public void shoot(int yield) throws IllegalStateException {
-		if(this.getWorld() != null)
+		if(this.getWorld() == null)
 			return;
 		
 		if(this.getCurrentWeapon() == null)
@@ -994,10 +993,8 @@ public class Worm extends GameObject {
 		if(projectile != null) {
 			this.getWorld().setLivingProjectile(projectile);
 			this.getWorld().add(projectile);
-			projectile.jump(GUIConstants.JUMP_TIME_STEP);
-		}/* else { //waarom uitgecommentarieert?
-			throw new IllegalStateException("Not enough action points to shoot.");
-		}*/
+			this.getWorld().getLivingProjectile().jump(GUIConstants.JUMP_TIME_STEP);
+		}
 	}
 	
 }

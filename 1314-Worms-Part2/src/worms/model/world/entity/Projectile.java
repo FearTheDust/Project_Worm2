@@ -221,7 +221,7 @@ public abstract class Projectile extends GameObject {
 	 * 			| this.setPosition(this.jumpStep(this.jumpTime()))
 	 */
 	public void jump(double timeStep) {
-			this.setPosition(this.jumpStep(this.jumpTime(timeStep)));
+		this.setPosition(this.jumpStep(this.jumpTime(timeStep)));
 	}
 
 }

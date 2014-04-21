@@ -128,17 +128,17 @@ public abstract class GameObject {
 	 */
 	public void fall() {
 		if(this.getWorld() != null) {
-			while(canFall()) { 
-				if(this.getPosition().getY() - this.getRadius()*0.1 >= -2) //-2, to be sure it doesn't end before but doesn't go on forever either.
+			while(canFall() && this.getWorld().liesWithinBoundaries(this)) { 
 					this.setPosition(new Position(this.getPosition().getX(), this.getPosition().getY() - this.getRadius()*0.1)); // fall with a little bit 
-				else
-					break; //TODO can be shortened down by including a condition in the while(..) liesWithinBoundaries?? + isAlive to liesWithinBoundaries?
 			}
 		}
 	}
 	
 	/**
 	 * Remove the set world if needed.
+	 * If a world has to be set to null, remove this Object in that world by calling world.remove(GameObject), that function will call
+	 * this in order to clean both ends.
+	 * 
 	 * @post If the world set doesn't contain this GameObject, set the world to null.
 	 * 			| if(this.getWorld() != null && !this.getWorld().getGameObjects().contains(this))
 	 * 			|	new.getWorld() == null
