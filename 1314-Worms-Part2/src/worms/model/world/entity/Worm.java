@@ -883,6 +883,9 @@ public class Worm extends GameObject {
 	 * @return False if the worm has no world.
 	 * 			| if(this.getWorld() == null
 	 * 			| 	result == false
+	 * @return False if the position of the worm with its radius is impassable.
+	 * 			| if(this.getWorld().isImpassable(this.getPosition(), this.getRadius())
+	 * 			|	result == false
 	 * @return False if there is impassable terrain adjacent to this worm.
 	 * 			| result == !this.getWorld().isAdjacent(this.getPosition(), this.getRadius())
 	 */
@@ -904,6 +907,9 @@ public class Worm extends GameObject {
 			}
 		}
 		return true;*/
+		if(this.getWorld().isImpassable(this.getPosition(), this.getRadius()))
+			return false;
+				
 		return !this.getWorld().isAdjacent(this.getPosition(), this.getRadius());
 	}
 	
