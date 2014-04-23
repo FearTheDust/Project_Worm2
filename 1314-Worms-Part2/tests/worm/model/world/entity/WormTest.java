@@ -16,6 +16,7 @@ import worms.gui.GUIConstants;
 import worms.model.Facade;
 import worms.model.IFacade;
 import worms.model.Team;
+import worms.model.equipment.weapons.BrentsWeaponOfDoom;
 import worms.model.equipment.weapons.Weapon;
 import worms.model.world.World;
 import worms.model.world.entity.Worm;
@@ -370,6 +371,9 @@ public class WormTest {
 		Worm worm = new Worm(world, new Position(1,2), 0, 1, "Test", 20, 10);
 		Weapon weapon = worm.getNextWeapon();
 		assertTrue(worm.hasGot(weapon));
+		
+		Weapon brent = new BrentsWeaponOfDoom(worm);
+		assertFalse(worm.hasGot(brent));
 	}
 
 	/**

@@ -111,6 +111,7 @@ public class Worm extends GameObject {
 		// Add & set weapons.
 		this.add(new Rifle(this));
 		this.add(new Bazooka(this));
+		//this.add(new BrentsWeaponOfDoom(this));
 		this.setCurrentWeapon(this.getNextWeapon());
 	}
 
@@ -261,6 +262,7 @@ public class Worm extends GameObject {
 	
 	/**
 	 * Returns whether or not this worm can turn with the provided angle.
+	 * 
 	 * @param angle The angle to check for.
 	 * 
 	 * @return	Whether the worm has more or an equal amount of AP than the cost to turn with that angle.
@@ -464,16 +466,22 @@ public class Worm extends GameObject {
 	 * @param hitPoints The amount of hit points to set the current amount to.
 	 * 
 	 * @post	If hitPoints is greater than or equal to zero,
-	 * 			the new amount of hit points will be set to the minimum  of hitPoints and getMaximumHitPoints()
+	 * 			the new amount of hit points will be set to the minimum of hitPoints and getMaximumHitPoints()
 	 * 			| if(hitPoints >= 0)
 	 * 			| new.getCurrentHitPoints() == Math.min(hitPoints, this.getMaximumHitPoints)
-	 * @post	If the hitPoints is less than zero, zero will be set.
+	 * @post	If the hitPoints is less than zero, zero will be set for the new Worm's HP.
 	 * 			| if(hitPoints < 0)
 	 * 			| new.getCurrentHitPoints() == 0
+	 * @effect If hitPoints is less than or equal to zero, the currentHP is different and the active worm in the world is this one, call this.getWorld().nextTurn().
+	 * 			| if(hitPoints <= 0 && this.getCurrentHitPoints() > hitPoints && this.getWorld() != null && this.getWorld().getActiveWorm() == this)
+	 * 			|		this.getWorld().nextTurn()
 	 */
 	@Raw @Model
 	private void setCurrentHitPoints(int hitPoints) {
-		this.currentHitPoints = (hitPoints < 0) ? 0 : Math.min(hitPoints, getMaximumHitPoints());
+		int oldHP = this.currentHitPoints;
+		this.currentHitPoints = (hitPoints <= 0) ? 0 : Math.min(hitPoints, getMaximumHitPoints());
+		if (hitPoints <= 0 && oldHP > hitPoints && this.getWorld() != null && this.getWorld().getActiveWorm() == this) //so this doesn't get called by this.getCurrentHP()
+				this.getWorld().nextTurn();
 	}
 	
 	/**
@@ -514,28 +522,25 @@ public class Worm extends GameObject {
 	 * 
 	 * @param actionPoints The new amount of action points.
 	 * 
-	 * @post If actionPoints is less than or equal to zero, zero will be set and the turn will go to the next worm in the world.
+	 * @post If actionPoints is less than or equal to zero the new AP will be 0.
 	 * 			| if(actionPoints <= 0) 
 	 * 			| 	new.getCurrentActionPoints() == 0
 	 * @post If actionPoints is greater than zero, The new amount will be set to the minimum value of
 	 * 			actionPoints and getMaximumActionPoints() 
-	 *      	| else
+	 *      	| if(actionPoints > 0)
 	 *      	| 	new.getCurrentActionPoints() == Math.min(actionPoints,this.getMaximumActionPoints)
 	 * 
-	 * @effect If actionPoints is less than or equal to zero and the currentAP is different, call this.getWorld().nextTurn().
-	 * 			| if(actionPoints <= 0)
-	 * 			|	if(this.getCurrentActionPoints() != actionPoints && this.getWorld() != null)
+	 * @effect If actionPoints is less than or equal to zero, the currentAP is different and the active worm is this one, call this.getWorld().nextTurn().
+	 * 			| if(actionPoints <= 0 && this.getCurrentActionPoints() > actionPoints && this.getWorld() != null && this.getWorld().getActiveWorm() == this)
 	 * 			|		this.getWorld().nextTurn()
 	 */
 	@Raw @Model
 	private void setCurrentActionPoints(int actionPoints) {
 		int oldAP = this.currentActionPoints;
-		if (actionPoints <= 0) {
-			this.currentActionPoints = 0;
-			if(oldAP != actionPoints && this.getWorld() != null) //so this doesn't get called by this.getCurrentAP()
+		this.currentActionPoints = (actionPoints <= 0) ? 0 : Math.min(actionPoints, getMaximumActionPoints());
+		
+		if (actionPoints <= 0 && oldAP > actionPoints && this.getWorld() != null && this.getWorld().getActiveWorm() == this) //so this doesn't get called by this.getCurrentAP()
 				this.getWorld().nextTurn();
-		} else
-			this.currentActionPoints = Math.min(actionPoints, getMaximumActionPoints());
 	}
 
 	/**
