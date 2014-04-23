@@ -1,8 +1,6 @@
 package worms.model.equipment.weapons;
 
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
-import be.kuleuven.cs.som.annotate.Raw;
+import be.kuleuven.cs.som.annotate.*;
 import worms.model.world.entity.Worm;
 
 /**
@@ -11,7 +9,6 @@ import worms.model.world.entity.Worm;
  * 
  * @author Derkinderen Vincent
  * @author Coosemans Brent
- * 
  */
 public class Bazooka extends Weapon {
 	
@@ -42,7 +39,9 @@ public class Bazooka extends Weapon {
 
 	
 	/**
-	 * Initialize a Bazooka with an owner, a projectile mass of BAZOOKA_PROJECTILE_MASS, damage infliction of BAZOOKA_BASEDAMAGE, a cost to shoot of BAZOOKA_SHOOTCOST and a base force of BAZOOKA_BASEFORCE and a max force of BAZOOKA_MAXFORCE.
+	 * Initialize a Bazooka with an owner, a projectile mass of BAZOOKA_PROJECTILE_MASS, damage infliction of BAZOOKA_BASEDAMAGE, 
+	 * a cost to shoot of BAZOOKA_SHOOTCOST and a base force of BAZOOKA_BASEFORCE and a max force of BAZOOKA_MAXFORCE.
+	 * 
 	 * @param owner The owner of the Bazooka
 	 * 
 	 * @effect super(owner, BAZOOKA_PROJECTILE_MASS, BAZOOKA_BASEDAMAGE, BAZOOKA_SHOOTCOST, BAZOOKA_BASEFORCE, BAZOOKA_MAXFORCE);

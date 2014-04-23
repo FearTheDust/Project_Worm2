@@ -6,9 +6,7 @@ import java.util.Random;
 
 import worms.model.equipment.weapons.Weapon;
 import worms.model.world.World;
-import worms.model.world.entity.Food;
-import worms.model.world.entity.Projectile;
-import worms.model.world.entity.Worm;
+import worms.model.world.entity.*;
 import worms.util.Position;
 
 /**
@@ -27,12 +25,10 @@ public class Facade implements IFacade {
 	@Override
 	public void turn(Worm worm, double angle) {
 		angle %= 2*Math.PI; //-180 -> 180
-		
-		if(angle < -Math.PI) {
+		if(angle < -Math.PI)
 			angle += 2*Math.PI;
-		} else if(angle > Math.PI) {
+		else if(angle > Math.PI)
 			angle -= 2*Math.PI;
-		}
 		worm.turn(angle);
 	}
 
@@ -135,14 +131,14 @@ public class Facade implements IFacade {
 
 		if(position!=null) {
 			String[] names = {"Brent", "Vincent" , "Eric", "Jasper", "Thomas H", "Jan Tobias", "Syeda", "Andreas", "Tom", "Gijs", 
-				"Thomas V", "Koen", "Change my name", "Hendrik", "Philip", "Yolande", "Marc",  "André", "Bart",  "Arno", "FearTheDust", "Brancus", "This deserves at least 16"};
+				"Thomas V", "Koen", "Change my name", "Hendrik", "Philip", "Yolande", "Marc",  "André", "Bart",  "Arno", 
+					"FearTheDust", "Brancus", "This deserves at least a 16"};
 			
 			worm = createWorm(world, position.getX(), position.getY(), 0, 0.5, names[world.getRandom().nextInt(names.length)]);
 			worm.softFall();
 			ArrayList<Team> teams = (ArrayList<Team>) world.getTeams();
-			if(teams.size()>0) {
+			if(teams.size()>0)
 				teams.get(teams.size()-1).add(worm);
-			}
 		} else {
 			System.out.println("Didn't find a position");
 		}
@@ -243,12 +239,10 @@ public class Facade implements IFacade {
 	@Override
 	public String getTeamName(Worm worm) {
 		Team team = worm.getTeam();
-
-		if(team == null) {
+		if(team == null)
 			return null;
-		} else {
+		else
 			return team.getName();
-		}
 	}
 
 	@Override
@@ -332,7 +326,7 @@ public class Facade implements IFacade {
 	}
 
 	@Override
-	public void shoot(Worm worm, int yield) { //TODO: add test
+	public void shoot(Worm worm, int yield) {
 		try {
 			worm.shoot(yield);
 		} catch(IllegalStateException ex) {

@@ -1,13 +1,9 @@
 package worms.model.equipment.weapons;
 
 import worms.model.Constants;
-import worms.model.world.entity.Projectile;
-import worms.model.world.entity.WeaponProjectile;
-import worms.model.world.entity.Worm;
+import worms.model.world.entity.*;
 import worms.util.Position;
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
-import be.kuleuven.cs.som.annotate.Raw;
+import be.kuleuven.cs.som.annotate.*;
 
 /**
  * Abstract class representing a Weapon with a certain owner, projectile mass, damage, cost to shoot and base & maximum force.
@@ -17,7 +13,6 @@ import be.kuleuven.cs.som.annotate.Raw;
  * 
  * @invar	The mass of this Weapon projectile is at all times valid.
  * 			| isValidProjectileMass(this.getProjectileMass())
- * 
  * @invar	The owner of this Weapon is never null.
  * 			| this.getOwner() != null
  *
@@ -46,7 +41,8 @@ public abstract class Weapon {
 	 * 
 	 * @throws IllegalArgumentException 
 	 * 			When mass isn't a valid ProjectileMass.
-	 * 			| !isValidProjectileMass(mass) ||
+	 * 			| !isValidProjectileMass(mass)
+	 * @throws IllegalArgumentException
 	 * 			When the owner is a null reference or isn't alive.
 	 * 			| (owner == null || !owner.isAlive())
 	 */
@@ -83,22 +79,19 @@ public abstract class Weapon {
 		return damage;
 	}
 	
-	/**
-	 * The amount of hit points this weapon can deduce.
-	 */
 	private final int damage;
 
 	
 	/**
 	 * Check if the provided mass is a valid mass for this Weapon.
+	 * 
 	 * @return	False if the mass is less than zero.
 	 * 			| if(mass < 0) then 
 	 * 			|	result == false
 	 */
 	public static boolean isValidProjectileMass(double mass) {
 		if(mass < 0)
-			return false;
-		
+			return false;	
 		return true;
 	}
 	
@@ -110,9 +103,6 @@ public abstract class Weapon {
 		return mass;
 	}
 	
-	/**
-	 * The mass of this weapon.
-	 */
 	private final double mass;
 	
 	/**
@@ -122,26 +112,24 @@ public abstract class Weapon {
 	public int getCost() {
 		return cost;
 	}
-	
-	/**
-	 * The amount of action points it costs to shoot with this weapon.
-	 */
+
 	private final int cost;
 	
 	/**
 	 * The force which the weapon exerts on the projectile.
+	 * 
 	 * @param propulsionYield
+	 * 
 	 * @return The force calculated based on the propulsionYield.
 	 * 			| baseForce + (maxForce-baseForce) * propulsionYield / 100;
 	 * 
 	 * @throws IllegalArgumentException
+	 * 			When the propulsionYield isn't a valid propulsionYield.
 	 * 			| !Projectile.isValidPropulsionYield(propulsionYield)
 	 */
 	public double getForce(double propulsionYield) throws IllegalArgumentException {
-		if(!Projectile.isValidPropulsionYield(propulsionYield)) {
+		if(!Projectile.isValidPropulsionYield(propulsionYield))
 			throw new IllegalArgumentException();
-		}
-		
 		return baseForce + (maxForce-baseForce) * propulsionYield / 100.0;
 	}
 	
@@ -204,7 +192,4 @@ public abstract class Weapon {
 		return projectile;
 	}
 	
-	
-	
-
 }

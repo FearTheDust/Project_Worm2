@@ -4,7 +4,7 @@ package worms.model;
  * 
  * @author Coosemans Brent
  * @author Derkinderen Vincent
- *
+ * 
  */
 public class Constants {
 	
@@ -34,5 +34,10 @@ public class Constants {
 	 * E.g newRadius = oldRadius*FOOD_RADIUS_GROWTH
 	 */
 	public static final double FOOD_RADIUS_GROWTH = 1.1;
+	
+	/**
+	 * The maximum amount of teams allowed in a world.
+	 */
+	public static final int MAX_TEAM_AMOUNT = 10;
 	
 }

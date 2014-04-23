@@ -1,8 +1,6 @@
 package worms.model.equipment.weapons;
 
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
-import be.kuleuven.cs.som.annotate.Raw;
+import be.kuleuven.cs.som.annotate.*;
 import worms.model.world.entity.Worm;
 
 /**
@@ -11,7 +9,6 @@ import worms.model.world.entity.Worm;
  * 
  * @author Derkinderen Vincent
  * @author Coosemans Brent
- * 
  */
 public class Rifle extends Weapon {
 	
@@ -41,7 +38,9 @@ public class Rifle extends Weapon {
 	public static final double RIFLE_MAXFORCE = 1.5;
 	
 	/**
-	 * Initialize a Rifle with a projectile mass of RIFLE_PROJECTILE_MASS, damage infliction of RIFLE_BASEDAMAGE, a cost to shoot of RIFLE_SHOOTCOST and a base force of RIFLE_BASEFORCE and a max force of RIFLE_MAXFORCE.
+	 * Initialize a Rifle with a projectile mass of RIFLE_PROJECTILE_MASS, damage infliction of RIFLE_BASEDAMAGE, 
+	 * a cost to shoot of RIFLE_SHOOTCOST and a base force of RIFLE_BASEFORCE and a max force of RIFLE_MAXFORCE.
+	 * 
 	 * @param owner The owner of this weapon.
 	 * 
 	 * @effect super(owner, RIFLE_PROJECTILE_MASS, RIFLE_BASEDAMAGE, RIFLE_SHOOTCOST, RIFLE_BASEFORCE, RIFLE_MAXFORCE);

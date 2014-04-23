@@ -3,8 +3,7 @@ package worms.model.world.entity;
 import worms.model.Constants;
 import worms.model.world.World;
 import worms.util.Position;
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
+import be.kuleuven.cs.som.annotate.*;
 
 /**
  * Represents a Projectile within a world with a certain position, angle, forceTime and propulsionYield.
@@ -14,7 +13,6 @@ import be.kuleuven.cs.som.annotate.Immutable;
  * 
  * @invar The propulsionYield is a valid propulsionYield.
  * 			| isValidPropulsionYield(this.getPropulsionYield())
- *
  */
 public abstract class Projectile extends GameObject {
 
@@ -29,14 +27,17 @@ public abstract class Projectile extends GameObject {
 	 * 
 	 * @effect super(world, position)
 	 * 
-	 * @post | new.getAngle() == angle
-	 * @post | new.getForceTime() == forceTime
-	 * @post | new.getPropulsionYield() == propulsionYield
+	 * @post The angle of the new projectile is equal to angle.
+	 * 		| new.getAngle() == angle
+	 * @post The time a force is exerted on the new projectile is forceTime.
+	 * 		| new.getForceTime() == forceTime
+	 * @post The propulsion yield of the force that is exerted on the new projectile is equal to propulsionYield.
+	 * 		| new.getPropulsionYield() == propulsionYield
 	 * 
 	 * @throws IllegalArgumentException
 	 * 			When the propulsionYield isn't a valid propulsionYield.
 	 * 			| !isValidPropulsionYield(propulsionYield)
-	 * 			When the forceTime isn't a valid forceTime.
+	 * @throws	When the forceTime isn't a valid forceTime.
 	 * 			| !isValidForceTime(forceTime)
 	 */
 	public Projectile(World world, Position position, double angle, double forceTime, double propulsionYield) throws IllegalArgumentException {
@@ -44,7 +45,6 @@ public abstract class Projectile extends GameObject {
 		
 		if(!isValidPropulsionYield(propulsionYield))
 			throw new IllegalArgumentException("The propulsionYield must be a valid propulsionYield");
-		
 		if(!isValidForceTime(forceTime))
 			throw new IllegalArgumentException("The forceTime must be valid.");
 		
@@ -72,7 +72,9 @@ public abstract class Projectile extends GameObject {
 	
 	/**
 	 * Checks whether the provided propulsionYield is valid.
+	 * 
 	 * @param propulsionYield The propulsionYield to check.
+	 * 
 	 * @return Whether the propulsionYield is between (inclusive) 0 and (inclusive) 100.
 	 * 			| result == (propulsionYield >= 0 && propulsionYield <= 100)
 	 */
@@ -106,19 +108,18 @@ public abstract class Projectile extends GameObject {
 	public final boolean isAlive() {
 		if(this.getWorld() == null)
 			return false;
-		
 		if(!this.getWorld().liesWithinBoundaries(this))
 				return false;
-			
 		if(this.getWorld().getLivingProjectile() != this)
 			return false;
-				
 		return true;
 	}
 
 	/**
 	 * Returns whether forceTime is a valid ForceTime.
+	 * 
 	 * @param forceTime The time to check.
+	 * 
 	 * @return False when forceTime is negative.
 	 * 			| if(forceTime < 0)
 	 * 			|	result == false
@@ -163,7 +164,6 @@ public abstract class Projectile extends GameObject {
 	 * @return	When the time equals 0 the current position will be returned.
 	 * 			| if(time == 0) Then
 	 * 			| 	result == this.getPosition(); 
-	 * 
 	 * @return Else return The position this worm has at a certain time in a jump.
 	 * 			| Else
 	 * 			| 	startSpeed = (this.getForce() / this.getMass()) * this.getForceTime()
@@ -184,27 +184,21 @@ public abstract class Projectile extends GameObject {
 	public Position jumpStep(double time) throws IllegalArgumentException, IllegalStateException {
 		if (time < 0)
 			throw new IllegalArgumentException("The time can't be negative.");
-
-		if (time == 0) {
-			return this.getPosition();
-		}
 		
-		double mass = this.getMass();
+		if (time == 0)
+			return this.getPosition();
+		
+		double mass = this.getMass(); //efficiency.
 		
 		if(mass <= 0)
 			throw new IllegalStateException("The mass was less than or equal to zero.");
-
 		// Calculation
 		double startSpeed = (this.getForce() / mass) * this.getForceTime();
-
 		double startSpeedX = startSpeed * Math.cos(this.getAngle());
 		double startSpeedY = startSpeed * Math.sin(this.getAngle());
-
 		double x = this.getPosition().getX() + (startSpeedX * time);
-		double y = this.getPosition().getY()
-				+ (startSpeedY * time - Constants.EARTH_ACCELERATION
-						* Math.pow(time, 2) / 2.0);
-
+		double y = this.getPosition().getY() + (startSpeedY * time 
+				- Constants.EARTH_ACCELERATION * Math.pow(time, 2) / 2.0);
 		// Return
 		return new Position(x, y);
 	}

@@ -4,9 +4,7 @@ import java.util.ArrayList;
 
 import worms.model.equipment.weapons.Weapon;
 import worms.util.Position;
-import be.kuleuven.cs.som.annotate.Basic;
-import be.kuleuven.cs.som.annotate.Immutable;
-import be.kuleuven.cs.som.annotate.Raw;
+import be.kuleuven.cs.som.annotate.*;
 
 /**
  * Represents a projectile shot from a certain weapon.
@@ -16,7 +14,6 @@ import be.kuleuven.cs.som.annotate.Raw;
  * 
  * @invar The usedWeapon is always a valid Weapon
  * 			| this.isValidWeapon(this.getUsedWeapon())
- *
  */
 public class WeaponProjectile extends Projectile {
 
@@ -31,9 +28,12 @@ public class WeaponProjectile extends Projectile {
 	 * 
 	 * @effect super(usedWeapon().getOwner().getWorld(), position, angle, forceTime, propulsionYield)
 	 * 
-	 * @post	| new.getUsedWeapon() == usedWeapon
-	 * @post	| new.getMass() == usedWeapon.getProjectileMass()
-	 * @post	| new.getWorld() == usedWeapon.getOwner().getWorld()
+	 * @post The used weapon of this projectile is usedWeapon.
+	 * 		| new.getUsedWeapon() == usedWeapon
+	 * @post The mass of this projectile is the projectilemass of the used weapon.
+	 * 		| new.getMass() == usedWeapon.getProjectileMass()
+	 * @post The world of this projectile is the world of the owner of the used weapon.
+	 * 		| new.getWorld() == usedWeapon.getOwner().getWorld()
 	 * 
 	 * @throws IllegalArgumentException
 	 * 			| !isValidWeapon(usedWeapon)
@@ -41,10 +41,8 @@ public class WeaponProjectile extends Projectile {
 	@Raw
 	public WeaponProjectile(Position position, double angle, double forceTime, double propulsionYield, Weapon usedWeapon) throws IllegalArgumentException {
 		super(usedWeapon.getOwner().getWorld(), position, angle, forceTime, propulsionYield);
-		
 		if(!isValidWeapon(usedWeapon))
 			throw new IllegalArgumentException("Invalid weapon to create a WeaponProjectile.");
-		
 		this.usedWeapon = usedWeapon;
 	}
 
@@ -75,7 +73,9 @@ public class WeaponProjectile extends Projectile {
 	
 	/**
 	 * Returns whether or not the weapon is a valid weapon.
-	 * @return  | if (weapon == null) then 
+	 * 
+	 * @return  False if the weapon is null.
+	 * 			| if (weapon == null) then 
 	 * 			| result == false
 	 */
 	public static boolean isValidWeapon(Weapon weapon) {
@@ -97,10 +97,10 @@ public class WeaponProjectile extends Projectile {
 	 *			|
 	 *			| while(this.getWorld().liesWithinBoundaries(calculatedPosition, this.getRadius()) &&
 	 *			|	!this.getWorld().isImpassable(calculatedPosition, this.getRadius())
-	 *			|		&& !(hits.size()>1) && !(hits.size()==1 && !hits.contains(this.getUsedWeapon().getOwner()))) {
-	 *			|			calculatedPosition = this.jumpStep(loopTime);
-	 *			|			loopTime += timeStep;
-	 *			|			hits = this.getWorld().hitsWorm(calculatedPosition, this.getRadius());
+	 *			|		&& !(hits.size()>1) && !(hits.size()==1 && !hits.contains(this.getUsedWeapon().getOwner())))
+	 *			|			calculatedPosition = this.jumpStep(loopTime)
+	 *			|			loopTime += timeStep
+	 *			|			hits = this.getWorld().hitsWorm(calculatedPosition, this.getRadius())
 	 *			| result == loopTime
 	 */
 	public double jumpTime(double timeStep) {
@@ -113,12 +113,10 @@ public class WeaponProjectile extends Projectile {
 		while(this.getWorld().liesWithinBoundaries(calculatedPosition, calcRadius) &&
 				!this.getWorld().isImpassable(calculatedPosition, calcRadius)
 				&& !(hits.size()>1) && !(hits.size()==1 && !hits.contains(this.getUsedWeapon().getOwner()))) {
-			
 			calculatedPosition = this.jumpStep(loopTime);
 			loopTime += timeStep;
 			hits = this.getWorld().hitsWorm(calculatedPosition, calcRadius);
 		}
-	
 		return loopTime;
 	}
 	
@@ -129,14 +127,12 @@ public class WeaponProjectile extends Projectile {
 	 * 
 	 * @effect	Initiate jump of our superclass.
 	 * 			| super.jump(timeStep)
-	 * 
 	 * @effect All worms within the radius of the new projectile's position will be hit.
-	 * 		| for each Worm shotWorm in new.getWorld().hitsWorm(new.getPosition(), new.getRadius());
-	 * 		|	shotWorm.inflictHitDamage(new.getUsedWeapon().getDamage())
+	 * 			| for each Worm shotWorm in new.getWorld().hitsWorm(new.getPosition(), new.getRadius());
+	 * 			|	shotWorm.inflictHitDamage(new.getUsedWeapon().getDamage())
 	 */
 	public void jump(double timeStep) {
 		super.jump(timeStep);
-		
 		ArrayList<Worm> hitList = this.getWorld().hitsWorm(this.getPosition(), this.getRadius());
 		for(Worm shotWorm : hitList) {
 			shotWorm.inflictHitDamage(this.getUsedWeapon().getDamage());

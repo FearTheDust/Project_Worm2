@@ -113,7 +113,6 @@ public abstract class GameObject {
 	public boolean canFall() {
 		if (this.getWorld() == null)
 			return false;
-		
 		return !this.getWorld().isAdjacent(this.getPosition(), this.getRadius()) && !this.getWorld().isImpassable(this.getPosition(), this.getRadius());
 	}
 	
