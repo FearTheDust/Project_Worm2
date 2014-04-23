@@ -787,7 +787,7 @@ public class World {
 	 * 			| if(list.size() != 0)
 	 * 			|	Worm worm = list.get(0)
 	 * 			|	if(worm.getTeam() != null)
-	 * 			|		return worm.getTeam().getName()
+	 * 			|		return "Team " + worm.getTeam().getName()
 	 * 			|	else
 	 * 			|		return worm.getName()
 	 *			| else
@@ -799,7 +799,7 @@ public class World {
 		if(list.size() != 0) {
 			Worm worm = list.get(0);
 			if(worm.getTeam() != null)
-				return worm.getTeam().getName();
+				return "Team " + worm.getTeam().getName();
 			else
 				return worm.getName();
 		} else {
