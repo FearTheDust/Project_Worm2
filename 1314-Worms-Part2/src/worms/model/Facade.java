@@ -16,12 +16,17 @@ import worms.util.Position;
  * @author Derkinderen Vincent
  */
 public class Facade implements IFacade {
-
+	/*
+	* Test if a worm can turn.
+	*/
 	@Override
 	public boolean canTurn(Worm worm, double angle) {
 		return worm.canTurn(angle);
 	}
 
+	/*
+	* Turn the given worm according to the given angle.
+	*/
 	@Override
 	public void turn(Worm worm, double angle) {
 		angle %= 2*Math.PI; //-180 -> 180
@@ -31,7 +36,10 @@ public class Facade implements IFacade {
 			angle -= 2*Math.PI;
 		worm.turn(angle);
 	}
-
+	
+	/*
+	* Get a list of calculated jump steps.
+	*/
 	@Override
 	public double[] getJumpStep(Worm worm, double t) {
 		try {
@@ -42,27 +50,42 @@ public class Facade implements IFacade {
 			throw new ModelException(exc.getMessage());
 		}
 	}
-
+	
+	/*
+	* Get the X coordinate of the given worm.
+	*/
 	@Override
 	public double getX(Worm worm) {
 		return worm.getPosition().getX();
 	}
-
+	
+	/*
+	* Get the Y coordinate of the given worm.
+	*/
 	@Override
 	public double getY(Worm worm) {
 		return worm.getPosition().getY();
 	}
 
+	/*
+	* Get the orientation (in degrees) of the given worm.
+	*/	
 	@Override
 	public double getOrientation(Worm worm) {
 		return worm.getAngle();
 	}
 
+	/*
+	* Get the radius of the given worm.
+	*/
 	@Override
 	public double getRadius(Worm worm) {
 		return worm.getRadius();
 	}
 
+	/*
+	* Set the radius of the given worm to the specified size.
+	*/
 	@Override
 	public void setRadius(Worm worm, double newRadius) throws ModelException {
 		try {
@@ -131,7 +154,7 @@ public class Facade implements IFacade {
 
 		if(position!=null) {
 			String[] names = {"Brent", "Vincent" , "Eric", "Jasper", "Thomas H", "Jan Tobias", "Syeda", "Andreas", "Tom", "Gijs", 
-				"Thomas V", "Koen", "Change my name", "Hendrik", "Philip", "Yolande", "Marc",  "André", "Bart",  "Arno", 
+				"Thomas V", "Koen", "Change my name", "Hendrik", "Philip", "Yolande", "Marc",  "AndrÃ©", "Bart",  "Arno", 
 					"FearTheDust", "Brancus", "This deserves at least a 16"};
 			
 			worm = createWorm(world, position.getX(), position.getY(), 0, 0.5, names[world.getRandom().nextInt(names.length)]);
